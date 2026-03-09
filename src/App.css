@@ -1,0 +1,161 @@
+/* Global background */
+
+body{
+font-family: 'Poppins', sans-serif;
+margin:0;
+padding:0;
+
+background:#0f172a;
+color:white;
+
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+/* Main container */
+
+.container{
+background:#1e293b;
+
+padding:40px;
+width:380px;
+
+border-radius:16px;
+
+box-shadow:0 0 20px rgba(0,255,255,0.2);
+
+text-align:center;
+}
+
+/* Headings */
+
+h1,h2{
+color:#38bdf8;
+margin-bottom:20px;
+}
+
+/* Inputs */
+
+input{
+width:90%;
+padding:12px;
+margin:10px 0;
+
+border-radius:8px;
+border:1px solid #334155;
+
+background:#0f172a;
+color:white;
+
+outline:none;
+}
+
+/* Input focus glow */
+
+input:focus{
+border:1px solid #38bdf8;
+box-shadow:0 0 8px #38bdf8;
+}
+
+/* Buttons */
+
+button{
+width:95%;
+padding:12px;
+margin-top:15px;
+
+background:#38bdf8;
+color:#0f172a;
+
+border:none;
+border-radius:8px;
+
+font-size:15px;
+font-weight:bold;
+
+cursor:pointer;
+transition:0.3s;
+}
+
+/* Hover effect */
+
+button:hover{
+background:#0ea5e9;
+transform:scale(1.05);
+box-shadow:0 0 10px #38bdf8;
+}
+
+/* Service grid */
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+gap:20px;
+margin-top:30px;
+}
+
+/* Service cards */
+
+.card{
+background:#1e293b;
+
+padding:25px;
+
+border-radius:12px;
+
+border:1px solid #334155;
+
+text-align:center;
+font-weight:bold;
+
+cursor:pointer;
+
+transition:0.3s;
+}
+
+/* Card hover glow */
+
+.card:hover{
+background:#0f172a;
+border:1px solid #38bdf8;
+box-shadow:0 0 12px #38bdf8;
+
+transform:translateY(-6px);
+}
+
+/* Table */
+
+table{
+width:90%;
+margin:40px auto;
+
+border-collapse:collapse;
+
+background:#1e293b;
+
+border-radius:10px;
+overflow:hidden;
+}
+
+/* Table headers */
+
+th{
+background:#38bdf8;
+color:#0f172a;
+padding:12px;
+}
+
+/* Table data */
+
+td{
+padding:12px;
+border-bottom:1px solid #334155;
+}
+
+/* Table row hover */
+
+tr:hover{
+background:#0f172a;
+}

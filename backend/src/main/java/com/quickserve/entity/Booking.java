@@ -1,7 +1,8 @@
 package com.quickserve.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "bookings")
@@ -9,7 +10,7 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long bookingId;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
@@ -23,44 +24,35 @@ public class Booking {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "service_item_id")
-    private ServiceItem serviceItem;
+    @Column(nullable = false)
+    private LocalDate bookingDate;
 
-    private LocalDateTime bookingDateTime;
+    @Column(nullable = false)
+    private LocalDate serviceDate;
 
-    private Integer durationHours;
-
-    private Double hourlyRate;
-
-    private Double totalAmount;
+    @Column(nullable = false)
+    private LocalTime serviceTime;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private BookingStatus status;
+
+    @Column(nullable = false)
+    private Double totalAmount;
+
+    private String address;
 
     private String notes;
 
     public Booking() {
     }
 
-    public Booking(User customer, Provider provider, Category category, LocalDateTime bookingDateTime,
-            Integer durationHours, Double hourlyRate, Double totalAmount, BookingStatus status) {
-        this.customer = customer;
-        this.provider = provider;
-        this.category = category;
-        this.bookingDateTime = bookingDateTime;
-        this.durationHours = durationHours;
-        this.hourlyRate = hourlyRate;
-        this.totalAmount = totalAmount;
-        this.status = status;
+    public Long getBookingId() {
+        return bookingId;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public void setBookingId(Long bookingId) {
+        this.bookingId = bookingId;
     }
 
     public User getCustomer() {
@@ -87,36 +79,36 @@ public class Booking {
         this.category = category;
     }
 
-    public ServiceItem getServiceItem() {
-        return serviceItem;
+    public LocalDate getBookingDate() {
+        return bookingDate;
     }
 
-    public void setServiceItem(ServiceItem serviceItem) {
-        this.serviceItem = serviceItem;
+    public void setBookingDate(LocalDate bookingDate) {
+        this.bookingDate = bookingDate;
     }
 
-    public LocalDateTime getBookingDateTime() {
-        return bookingDateTime;
+    public LocalDate getServiceDate() {
+        return serviceDate;
     }
 
-    public void setBookingDateTime(LocalDateTime bookingDateTime) {
-        this.bookingDateTime = bookingDateTime;
+    public void setServiceDate(LocalDate serviceDate) {
+        this.serviceDate = serviceDate;
     }
 
-    public Integer getDurationHours() {
-        return durationHours;
+    public LocalTime getServiceTime() {
+        return serviceTime;
     }
 
-    public void setDurationHours(Integer durationHours) {
-        this.durationHours = durationHours;
+    public void setServiceTime(LocalTime serviceTime) {
+        this.serviceTime = serviceTime;
     }
 
-    public Double getHourlyRate() {
-        return hourlyRate;
+    public BookingStatus getStatus() {
+        return status;
     }
 
-    public void setHourlyRate(Double hourlyRate) {
-        this.hourlyRate = hourlyRate;
+    public void setStatus(BookingStatus status) {
+        this.status = status;
     }
 
     public Double getTotalAmount() {
@@ -127,12 +119,12 @@ public class Booking {
         this.totalAmount = totalAmount;
     }
 
-    public BookingStatus getStatus() {
-        return status;
+    public String getAddress() {
+        return address;
     }
 
-    public void setStatus(BookingStatus status) {
-        this.status = status;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getNotes() {

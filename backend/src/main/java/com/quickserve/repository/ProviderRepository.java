@@ -7,7 +7,15 @@ import java.util.List;
 
 public interface ProviderRepository extends JpaRepository<Provider, Long> {
 
-    List<Provider> findByCategoryCategoryId(Long categoryId);
+    List<Provider> findByLocationIgnoreCase(String location);
 
-    List<Provider> findByUserLocationIgnoreCase(String location);
+    List<Provider> findByCategory_CategoryId(Long categoryId);
+
+    List<Provider> findByLocationIgnoreCaseAndCategory_CategoryId(String location, Long categoryId);
+
+    List<Provider> findByLocationIgnoreCaseAndCategory_CategoryIdAndPriceLessThanEqual(
+            String location,
+            Long categoryId,
+            Double price
+    );
 }

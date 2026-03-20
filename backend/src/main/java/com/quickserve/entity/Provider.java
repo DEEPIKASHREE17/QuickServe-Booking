@@ -10,34 +10,30 @@ public class Provider {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long providerId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    private Integer experience;
+    @Column(nullable = false)
+    private String serviceName;
 
-    private Double serviceCharge;
+    @Column(nullable = false)
+    private String location;
+
+    @Column(nullable = false)
+    private Double price;
 
     private String availability;
+
+    private Integer experience;
 
     private Double rating;
 
     public Provider() {
-    }
-
-    public Provider(Long providerId, User user, Category category, Integer experience, Double serviceCharge,
-            String availability, Double rating) {
-        this.providerId = providerId;
-        this.user = user;
-        this.category = category;
-        this.experience = experience;
-        this.serviceCharge = serviceCharge;
-        this.availability = availability;
-        this.rating = rating;
     }
 
     public Long getProviderId() {
@@ -64,20 +60,28 @@ public class Provider {
         this.category = category;
     }
 
-    public Integer getExperience() {
-        return experience;
+    public String getServiceName() {
+        return serviceName;
     }
 
-    public void setExperience(Integer experience) {
-        this.experience = experience;
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
-    public Double getServiceCharge() {
-        return serviceCharge;
+    public String getLocation() {
+        return location;
     }
 
-    public void setServiceCharge(Double serviceCharge) {
-        this.serviceCharge = serviceCharge;
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 
     public String getAvailability() {
@@ -86,6 +90,14 @@ public class Provider {
 
     public void setAvailability(String availability) {
         this.availability = availability;
+    }
+
+    public Integer getExperience() {
+        return experience;
+    }
+
+    public void setExperience(Integer experience) {
+        this.experience = experience;
     }
 
     public Double getRating() {

@@ -1,11 +1,15 @@
 package com.quickserve.controller;
 
-import com.quickserve.entity.Booking;
-import com.quickserve.entity.BookingStatus;
+import com.quickserve.dto.BookingRequest;
+import com.quickserve.dto.BookingResponse;
+import com.quickserve.dto.BookingStatusUpdateRequest;
 import com.quickserve.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -16,30 +20,65 @@ public class BookingController {
     private BookingService bookingService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createBooking(@RequestBody Booking booking) {
+    public ResponseEntity<?> createBooking(@RequestBody BookingRequest request) {
         try {
-            return ResponseEntity.ok(bookingService.createBooking(booking));
+            BookingResponse response = bookingService.createBooking(request);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/customer/{id}")
-    public ResponseEntity<?> getCustomerBookings(@PathVariable Long id) {
-        return ResponseEntity.ok(bookingService.getBookingsByCustomer(id));
-    }
-
-    @GetMapping("/provider/{id}")
-    public ResponseEntity<?> getProviderBookings(@PathVariable Long id) {
-        return ResponseEntity.ok(bookingService.getBookingsByProvider(id));
-    }
-
-    @PutMapping("/update-status/{id}")
-    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestParam BookingStatus status) {
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<?> getBookingsByCustomer(@PathVariable Long customerId) {
         try {
-            return ResponseEntity.ok(bookingService.updateStatus(id, status));
+            List<BookingResponse> responses = bookingService.getBookingsByCustomer(customerId);
+            return new ResponseEntity<>(responses, HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/provider/{providerId}")
+    public ResponseEntity<?> getBookingsByProvider(@PathVariable Long providerId) {
+        try {
+            List<BookingResponse> responses = bookingService.getBookingsByProvider(providerId);
+            return new ResponseEntity<>(responses, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<?> getBookingById(@PathVariable Long bookingId) {
+        try {
+            BookingResponse response = bookingService.getBookingById(bookingId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/status/{bookingId}")
+    public ResponseEntity<?> updateBookingStatus(
+            @PathVariable Long bookingId,
+            @RequestBody BookingStatusUpdateRequest request
+    ) {
+        try {
+            BookingResponse response = bookingService.updateBookingStatus(bookingId, request.getStatus());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/cancel/{bookingId}")
+    public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
+        try {
+            BookingResponse response = bookingService.cancelBooking(bookingId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 }

@@ -2,7 +2,7 @@ package com.quickserve.entity;
 
 public enum BookingStatus {
     PENDING,
-    BOOKED,
+    CONFIRMED,
     COMPLETED,
     CANCELLED
 }

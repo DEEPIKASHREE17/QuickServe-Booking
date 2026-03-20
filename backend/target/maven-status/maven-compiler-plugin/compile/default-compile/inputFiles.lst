@@ -4,6 +4,7 @@ C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\entity\User.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\repository\ServiceItemRepository.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\entity\ProviderService.java
+C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\service\ReviewService.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\dto\RegisterProviderRequest.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\dto\ReviewRequest.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\controller\CategoryController.java
@@ -21,6 +22,7 @@ C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\dto\LoginRequest.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\entity\BookingStatus.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\security\UserPrincipal.java
+C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\repository\ReviewRepository.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\service\ProviderService.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\QuickServeApplication.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\security\JwtAuthenticationFilter.java
@@ -29,6 +31,7 @@ C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\dto\ProviderServiceRequest.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\controller\TestController.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\dto\BookingRequest.java
+C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\controller\ReviewController.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\entity\AvailabilitySlot.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\entity\ServiceItem.java
 C:\Users\bhuva\OneDrive\Attachments\Desktop\QuickServe-Booking\backend\src\main\java\com\quickserve\dto\BookingStatusUpdateRequest.java

@@ -8,6 +8,15 @@ function Providers() {
     const [bookingProvider, setBookingProvider] = useState(null);
     const [bookingData, setBookingData] = useState({ date: '', duration: 1 });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [flash, setFlash] = useState({ msg: "", type: "info" });
+
+    const showFlash = (msg, type = "info", redirect = "") => {
+        setFlash({ msg, type });
+        setTimeout(() => {
+            setFlash({ msg: "", type: "info" });
+            if (redirect) navigate(redirect);
+        }, 3000);
+    };
 
     const navigate = useNavigate();
     const search = useLocation().search;
@@ -27,7 +36,17 @@ function Providers() {
                 } else {
                     response = await providerService.getByLocation('Anywhere');
                 }
-                setProviders(response.data);
+                const apiProviders = response.data || [];
+                // Merge local storage ratings to ensure optimistic UI updates hold
+                const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+                const mergedProviders = apiProviders.map(p => {
+                    const localMatch = localUsers.find(u => u.role === 'PROVIDER' && u.name === p.user?.name);
+                    if (localMatch && localMatch.rating) {
+                        return { ...p, rating: localMatch.rating, ratingCount: localMatch.ratingCount };
+                    }
+                    return p;
+                });
+                setProviders(mergedProviders);
             } catch (err) {
                 console.error("Fetch failed", err);
             } finally {
@@ -39,8 +58,7 @@ function Providers() {
 
     const handleBooking = async (provider) => {
         if (!user.id) {
-            alert("Please login to book a service");
-            navigate("/");
+            showFlash("Please login to book a service.", "error", "/");
             return;
         }
 
@@ -59,11 +77,10 @@ function Providers() {
             };
 
             await bookingService.create(bookingRequest);
-            alert("Booking submitted! Waiting for provider to accept.");
+            showFlash("Booking submitted! Waiting for provider to accept.", "success", "/bookings");
             setBookingProvider(null);
-            navigate("/bookings"); // We will create this page next
         } catch (err) {
-            alert("Failed to create booking: " + (err.response?.data || "Server error"));
+            showFlash("Failed to create booking: " + (err.response?.data || "Server error"), "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -77,6 +94,12 @@ function Providers() {
                 <h2 style={{ fontSize: '2rem' }}>Available Professionals</h2>
                 <p style={{ color: 'var(--text-secondary)' }}>Quality services guaranteed with our verified partners.</p>
             </div>
+
+            {flash.msg && (
+                <div style={{ padding: '12px 20px', marginBottom: '20px', borderRadius: '8px', fontWeight: 'bold', background: flash.type === 'error' ? '#fee2e2' : '#d1fae5', color: flash.type === 'error' ? '#dc2626' : '#059669' }}>
+                    {flash.msg}
+                </div>
+            )}
 
             <div className="grid">
                 {providers.map((p) => (

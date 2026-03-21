@@ -18,12 +18,6 @@ public class Category {
     public Category() {
     }
 
-    public Category(Long categoryId, String categoryName, String description) {
-        this.categoryId = categoryId;
-        this.categoryName = categoryName;
-        this.description = description;
-    }
-
     public Long getCategoryId() {
         return categoryId;
     }

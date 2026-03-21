@@ -16,12 +16,19 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User register(User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+    public User register(com.quickserve.dto.RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already registered");
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setRole(request.getRole() != null ? request.getRole() : "CUSTOMER");
+        user.setLocation(request.getLocation());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
         return userRepository.save(user);
     }
 

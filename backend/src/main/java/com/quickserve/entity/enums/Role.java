@@ -1,6 +1,7 @@
-package com.quickserve.entity;
+package com.quickserve.entity.enums;
 
 public enum Role {
     CUSTOMER,
-    PROVIDER
+    PROVIDER,
+    ADMIN
 }

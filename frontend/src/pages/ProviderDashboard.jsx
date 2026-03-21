@@ -7,6 +7,10 @@ function ProviderDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (provider.role === "CUSTOMER") {
+      navigate("/categories");
+      return;
+    }
     const all = JSON.parse(localStorage.getItem("bookings") || "[]");
     setBookings(all.filter((b) => b.providerEmail === provider.email || b.categoryName === provider.service));
   }, [provider.email, provider.service]);

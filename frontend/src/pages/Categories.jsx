@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const SERVICES = [
   { id: 1, name: "Electrician",      symbol: "⚡", desc: "Electrical repair services",           cost: 299, image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&q=80&w=400" },
@@ -19,6 +19,12 @@ function Categories() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [flash, setFlash] = useState("");
   const [hoveredCard, setHoveredCard] = useState(null);
+
+  useEffect(() => {
+    if (user.role === "PROVIDER") {
+      navigate("/provider-dashboard");
+    }
+  }, [user.role, navigate]);
 
   const handleLogout = () => {
     setFlash("You have been logged out successfully.");

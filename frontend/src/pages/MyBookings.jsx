@@ -17,7 +17,7 @@ function MyBookings() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/bookings")
+      .get("http://localhost:8081/api/bookings")
       .then((res) => {
         console.log("DATA:", res.data);
       })

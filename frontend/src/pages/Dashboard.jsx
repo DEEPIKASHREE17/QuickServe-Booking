@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 function Dashboard() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  useEffect(() => {
+    if (user.role === "PROVIDER") {
+      navigate("/provider-dashboard");
+    }
+  }, [user.role, navigate]);
+
   const bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
   const customerBookings = bookings.filter((b) => b.customerEmail === user.email);
   const pending = customerBookings.filter((b) => b.status === "Pending" || b.status === "Accepted");

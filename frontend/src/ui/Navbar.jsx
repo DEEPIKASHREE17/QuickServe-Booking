@@ -6,17 +6,18 @@ function Navbar() {
 
     return (
         <nav className="navbar">
-            <Link to="/dashboard" className="navbar-brand">QuickServe</Link>
+            <Link to={isProvider ? "/provider-dashboard" : "/categories"} className="navbar-brand">QuickServe</Link>
             <div className="navbar-links">
                 {isProvider ? (
                     <>
-                        <Link to="/bookings" className="navbar-link">Manage Bookings</Link>
+                        <Link to="/provider-dashboard" className="navbar-link">Dashboard</Link>
+                        <Link to="/module5" className="navbar-link">Service Portal</Link>
                     </>
                 ) : (
                     <>
                         <Link to="/categories" className="navbar-link">Categories</Link>
                         <Link to="/providers" className="navbar-link">Providers</Link>
-                        <Link to="/bookings" className="navbar-link">My Bookings</Link>
+                        <Link to="/my-bookings" className="navbar-link">My Bookings</Link>
                     </>
                 )}
                 <Link to="/profile" className="navbar-link">Profile</Link>

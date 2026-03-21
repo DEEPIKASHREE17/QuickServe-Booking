@@ -68,6 +68,12 @@ export default function Module5() {
   const navigate = useNavigate();
   const provider = JSON.parse(localStorage.getItem("user") || "{}");
 
+  useEffect(() => {
+    if (provider.role === "CUSTOMER") {
+      navigate("/categories");
+    }
+  }, [provider.role, navigate]);
+
   const [bookings,  setBookings]  = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [activeTab, setActiveTab] = useState("ALL");

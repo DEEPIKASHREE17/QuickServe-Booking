@@ -1,5 +1,7 @@
 package com.quickserve.dto;
 
+import com.quickserve.entity.BookingStatus;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -7,13 +9,11 @@ public class BookingRequest {
 
     private Long customerId;
     private Long providerId;
-    private Long providerServiceId;
-    private LocalDate bookingDate;
+    private String serviceName;
     private LocalDate serviceDate;
     private LocalTime serviceTime;
     private Double totalAmount;
-    private String address;
-    private String notes;
+    private BookingStatus status;
 
     public BookingRequest() {
     }
@@ -34,20 +34,12 @@ public class BookingRequest {
         this.providerId = providerId;
     }
 
-    public Long getProviderServiceId() {
-        return providerServiceId;
+    public String getServiceName() {
+        return serviceName;
     }
 
-    public void setProviderServiceId(Long providerServiceId) {
-        this.providerServiceId = providerServiceId;
-    }
-
-    public LocalDate getBookingDate() {
-        return bookingDate;
-    }
-
-    public void setBookingDate(LocalDate bookingDate) {
-        this.bookingDate = bookingDate;
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     public LocalDate getServiceDate() {
@@ -74,19 +66,11 @@ public class BookingRequest {
         this.totalAmount = totalAmount;
     }
 
-    public String getAddress() {
-        return address;
+    public BookingStatus getStatus() {
+        return status;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setStatus(BookingStatus status) {
+        this.status = status;
     }
 }

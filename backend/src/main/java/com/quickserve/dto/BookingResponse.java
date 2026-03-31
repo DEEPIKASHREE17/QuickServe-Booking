@@ -16,8 +16,6 @@ public class BookingResponse {
     private LocalTime serviceTime;
     private String status;
     private Double totalAmount;
-    private String address;
-    private String notes;
 
     public BookingResponse() {
     }
@@ -108,21 +106,5 @@ public class BookingResponse {
 
     public void setTotalAmount(Double totalAmount) {
         this.totalAmount = totalAmount;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
     }
 }

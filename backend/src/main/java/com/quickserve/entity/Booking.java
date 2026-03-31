@@ -1,6 +1,7 @@
 package com.quickserve.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -13,36 +14,29 @@ public class Booking {
     private Long bookingId;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false)
+    @JoinColumn(name = "customer_id")
     private User customer;
 
     @ManyToOne
-    @JoinColumn(name = "provider_id", nullable = false)
+    @JoinColumn(name = "provider_id")
     private Provider provider;
 
     @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id")
     private Category category;
 
-    @Column(nullable = false)
+    private String serviceName;
+
     private LocalDate bookingDate;
 
-    @Column(nullable = false)
     private LocalDate serviceDate;
 
-    @Column(nullable = false)
     private LocalTime serviceTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private BookingStatus status;
 
-    @Column(nullable = false)
     private Double totalAmount;
-
-    private String address;
-
-    private String notes;
 
     public Booking() {
     }
@@ -77,6 +71,14 @@ public class Booking {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     public LocalDate getBookingDate() {
@@ -117,21 +119,5 @@ public class Booking {
 
     public void setTotalAmount(Double totalAmount) {
         this.totalAmount = totalAmount;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
     }
 }

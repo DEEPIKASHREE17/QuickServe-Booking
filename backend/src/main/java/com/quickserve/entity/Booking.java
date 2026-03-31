@@ -1,7 +1,6 @@
 package com.quickserve.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -13,30 +12,18 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id")
-    private User customer;
-
-    @ManyToOne
-    @JoinColumn(name = "provider_id")
-    private Provider provider;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
-
+    private String customerName;
     private String serviceName;
-
+    private Double amount;
     private LocalDate bookingDate;
+    private LocalTime bookingTime;
+    private String address;
 
-    private LocalDate serviceDate;
+    private String status; // PENDING, PAID, CONFIRMED, FAILED
 
-    private LocalTime serviceTime;
-
-    @Enumerated(EnumType.STRING)
-    private BookingStatus status;
-
-    private Double totalAmount;
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+    private String razorpaySignature;
 
     public Booking() {
     }
@@ -49,28 +36,12 @@ public class Booking {
         this.bookingId = bookingId;
     }
 
-    public User getCustomer() {
-        return customer;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setCustomer(User customer) {
-        this.customer = customer;
-    }
-
-    public Provider getProvider() {
-        return provider;
-    }
-
-    public void setProvider(Provider provider) {
-        this.provider = provider;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
     public String getServiceName() {
@@ -81,6 +52,14 @@ public class Booking {
         this.serviceName = serviceName;
     }
 
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
     public LocalDate getBookingDate() {
         return bookingDate;
     }
@@ -89,35 +68,51 @@ public class Booking {
         this.bookingDate = bookingDate;
     }
 
-    public LocalDate getServiceDate() {
-        return serviceDate;
+    public LocalTime getBookingTime() {
+        return bookingTime;
     }
 
-    public void setServiceDate(LocalDate serviceDate) {
-        this.serviceDate = serviceDate;
+    public void setBookingTime(LocalTime bookingTime) {
+        this.bookingTime = bookingTime;
     }
 
-    public LocalTime getServiceTime() {
-        return serviceTime;
+    public String getAddress() {
+        return address;
     }
 
-    public void setServiceTime(LocalTime serviceTime) {
-        this.serviceTime = serviceTime;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
-    public BookingStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(BookingStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public Double getTotalAmount() {
-        return totalAmount;
+    public String getRazorpayOrderId() {
+        return razorpayOrderId;
     }
 
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setRazorpayOrderId(String razorpayOrderId) {
+        this.razorpayOrderId = razorpayOrderId;
+    }
+
+    public String getRazorpayPaymentId() {
+        return razorpayPaymentId;
+    }
+
+    public void setRazorpayPaymentId(String razorpayPaymentId) {
+        this.razorpayPaymentId = razorpayPaymentId;
+    }
+
+    public String getRazorpaySignature() {
+        return razorpaySignature;
+    }
+
+    public void setRazorpaySignature(String razorpaySignature) {
+        this.razorpaySignature = razorpaySignature;
     }
 }

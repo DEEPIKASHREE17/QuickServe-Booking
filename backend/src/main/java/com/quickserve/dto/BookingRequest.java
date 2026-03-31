@@ -1,37 +1,26 @@
 package com.quickserve.dto;
 
-import com.quickserve.entity.BookingStatus;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class BookingRequest {
 
-    private Long customerId;
-    private Long providerId;
+    private String customerName;
     private String serviceName;
-    private LocalDate serviceDate;
-    private LocalTime serviceTime;
-    private Double totalAmount;
-    private BookingStatus status;
+    private Double amount;
+    private LocalDate bookingDate;
+    private LocalTime bookingTime;
+    private String address;
 
     public BookingRequest() {
     }
 
-    public Long getCustomerId() {
-        return customerId;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
-
-    public Long getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(Long providerId) {
-        this.providerId = providerId;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
     public String getServiceName() {
@@ -42,35 +31,35 @@ public class BookingRequest {
         this.serviceName = serviceName;
     }
 
-    public LocalDate getServiceDate() {
-        return serviceDate;
+    public Double getAmount() {
+        return amount;
     }
 
-    public void setServiceDate(LocalDate serviceDate) {
-        this.serviceDate = serviceDate;
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 
-    public LocalTime getServiceTime() {
-        return serviceTime;
+    public LocalDate getBookingDate() {
+        return bookingDate;
     }
 
-    public void setServiceTime(LocalTime serviceTime) {
-        this.serviceTime = serviceTime;
+    public void setBookingDate(LocalDate bookingDate) {
+        this.bookingDate = bookingDate;
     }
 
-    public Double getTotalAmount() {
-        return totalAmount;
+    public LocalTime getBookingTime() {
+        return bookingTime;
     }
 
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setBookingTime(LocalTime bookingTime) {
+        this.bookingTime = bookingTime;
     }
 
-    public BookingStatus getStatus() {
-        return status;
+    public String getAddress() {
+        return address;
     }
 
-    public void setStatus(BookingStatus status) {
-        this.status = status;
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

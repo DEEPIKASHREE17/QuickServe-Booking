@@ -78,15 +78,15 @@ function ProviderDashboard() {
 
         {/* Bookings */}
         <h2 style={sectionH}>Customer Requests</h2>
-        {bookings.length === 0 ? (
+        {bookings.filter(b => b.status !== "Completed").length === 0 ? (
           <div style={emptyBox}>
             <div style={{ fontSize: "48px", marginBottom: "12px" }}>📭</div>
-            <h3 style={{ color: "#f1f5f9", marginBottom: "6px" }}>No requests yet</h3>
-            <p style={{ color: "#94a3b8" }}>Customer bookings will appear here.</p>
+            <h3 style={{ color: "#f1f5f9", marginBottom: "6px" }}>No active requests</h3>
+            <p style={{ color: "#94a3b8" }}>New customer bookings will appear here.</p>
           </div>
         ) : (
           <div style={grid}>
-            {bookings.map((b) => (
+            {bookings.filter(b => b.status !== "Completed").map((b) => (
               <div key={b.id} style={card}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(56,189,248,0.4)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.transform = "translateY(0)"; }}
@@ -122,6 +122,40 @@ function ProviderDashboard() {
             ))}
           </div>
         )}
+
+        {/* Reviews Section */}
+        <div style={{ marginTop: "48px" }}>
+          <h2 style={sectionH}>Customer Reviews & Feedback</h2>
+          {bookings.filter(b => b.status === "Completed" && b.rating).length === 0 ? (
+            <div style={{ ...emptyBox, padding: "40px" }}>
+              <p style={{ color: "#94a3b8", margin: 0 }}>No reviews received yet.</p>
+            </div>
+          ) : (
+            <div style={grid}>
+              {bookings.filter(b => b.status === "Completed" && b.rating).map((b) => (
+                <div key={b.id} style={{ ...card, borderLeft: `4px solid #f59e0b` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <div style={{ display: "flex", gap: "2px" }}>
+                      {[1,2,3,4,5].map(s => (
+                        <span key={s} style={{ color: s <= b.rating ? "#f59e0b" : "rgba(255,255,255,0.1)", fontSize: "16px" }}>★</span>
+                      ))}
+                    </div>
+                    <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 700 }}>{b.bookingDate}</span>
+                  </div>
+                  <p style={{ fontSize: "14px", color: "#f1f5f9", margin: "0 0 12px", fontStyle: b.feedback ? "italic" : "normal" }}>
+                    {b.feedback || "Rating only, no feedback provided."}
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "10px" }}>
+                    <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px" }}>👤</div>
+                    <span style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 600 }}>{b.customerName}</span>
+                    <span style={{ fontSize: "12px", color: "#64748b" }}>•</span>
+                    <span style={{ fontSize: "12px", color: "#64748b" }}>{b.categoryName}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

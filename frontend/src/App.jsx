@@ -10,6 +10,7 @@ import ProviderDashboard from "./pages/ProviderDashboard";
 import Profile          from "./pages/Profile";
 import Module4          from "./pages/Module4";
 import Module5          from "./pages/Module5";
+import RazorpayCheckout from "./pages/RazorpayCheckout";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/profile"            element={<Profile />} />
         <Route path="/module4"            element={<Module4 />} />
         <Route path="/module5"            element={<Module5 />} />
+        <Route path="/payment"            element={<RazorpayCheckout />} />
       </Routes>
     </BrowserRouter>
   );

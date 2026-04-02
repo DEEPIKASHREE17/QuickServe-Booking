@@ -4,6 +4,7 @@ import axios from "axios";
 
 function MyBookings() {
   const [bookings, setBookings] = useState([]);
+  const [ratingModal, setRatingModal] = useState(null); // { booking, rating }
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const navigate = useNavigate();
 
@@ -38,14 +39,14 @@ function MyBookings() {
       : "rgba(245,158,11,0.12)";
 
   // ── Rate ───────────────────────────────────────────────────────────
-  const rateBooking = (booking, rating) => {
+  const rateBooking = (booking, rating, feedback = "") => {
     // Optimistic UI
-    const updated = bookings.map((b) => b.id === booking.id ? { ...b, rating } : b);
+    const updated = bookings.map((b) => b.id === booking.id ? { ...b, rating, feedback } : b);
     setBookings(updated);
 
     // Sync localStorage bookings
     const all = JSON.parse(localStorage.getItem("bookings") || "[]");
-    localStorage.setItem("bookings", JSON.stringify(all.map((b) => b.id === booking.id ? { ...b, rating } : b)));
+    localStorage.setItem("bookings", JSON.stringify(all.map((b) => b.id === booking.id ? { ...b, rating, feedback } : b)));
 
     // Update Provider's overall rating in localStorage
     const users = JSON.parse(localStorage.getItem("users") || "[]");
@@ -202,11 +203,74 @@ function MyBookings() {
                   <p style={{ fontSize: "11px", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
                     {booking.rating ? "Your Rating" : "Rate Provider"}
                   </p>
-                  <StarRating value={booking.rating || 0} onChange={val => rateBooking(booking, val)} readonly={!!booking.rating} />
+                  <StarRating 
+                    value={booking.rating || 0} 
+                    readonly={!!booking.rating} 
+                    onRateClick={(r) => !booking.rating && setRatingModal({ booking, rating: r })}
+                  />
+                  {booking.feedback && (
+                    <p style={{ marginTop: "10px", fontSize: "13px", color: "#94a3b8", fontStyle: "italic", lineHeight: 1.4 }}>
+                      "{booking.feedback}"
+                    </p>
+                  )}
                 </div>
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Feedback Modal Overlay */}
+      {ratingModal && (
+        <div style={modalStyles.overlay} onClick={() => setRatingModal(null)}>
+          <div style={modalStyles.container} onClick={e => e.stopPropagation()}>
+            <div style={modalStyles.header}>
+              <h2 style={modalStyles.title}>Feedback for {ratingModal.booking.categoryName}</h2>
+              <button onClick={() => setRatingModal(null)} style={modalStyles.closeBtn}>✕</button>
+            </div>
+
+            <p style={modalStyles.subText}>How would you rate your experience with {ratingModal.booking.providerName}?</p>
+            
+            <div style={modalStyles.starsRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  onClick={() => setRatingModal({ ...ratingModal, rating: star })}
+                  style={{
+                    cursor: "pointer",
+                    fontSize: "32px",
+                    color: star <= ratingModal.rating ? "#f59e0b" : "rgba(255,255,255,0.15)",
+                    transition: "color 0.2s"
+                  }}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+
+            <p style={modalStyles.label}>Message (Optional)</p>
+            <textarea
+              id="feedback-text"
+              placeholder="Share your experience with the provider..."
+              style={modalStyles.textarea}
+              onFocus={e => e.target.style.borderColor = "#38bdf8"}
+              onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.12)"}
+            />
+
+            <div style={modalStyles.btnRow}>
+              <button 
+                onClick={() => {
+                  const fb = document.getElementById("feedback-text").value;
+                  rateBooking(ratingModal.booking, ratingModal.rating, fb);
+                  setRatingModal(null);
+                }}
+                style={modalStyles.submitBtn}
+              >
+                Submit Feedback
+              </button>
+              <button onClick={() => setRatingModal(null)} style={modalStyles.cancelBtn}>Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -228,14 +292,14 @@ function Detail({ icon, label, value, highlight }) {
   );
 }
 
-function StarRating({ value, onChange, readonly }) {
+function StarRating({ value, readonly, onRateClick }) {
   const [hover, setHover] = useState(0);
   return (
     <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
       {[1, 2, 3, 4, 5].map((star) => (
         <span
           key={star}
-          onClick={() => !readonly && onChange(star)}
+          onClick={() => !readonly && onRateClick && onRateClick(star)}
           onMouseEnter={() => !readonly && setHover(star)}
           onMouseLeave={() => !readonly && setHover(0)}
           style={{
@@ -248,7 +312,7 @@ function StarRating({ value, onChange, readonly }) {
           ★
         </span>
       ))}
-      {readonly && value > 0 && <span style={{ marginLeft: "6px", fontSize: "14px", color: "#f59e0b", fontWeight: 700 }}>{value.toFixed(1)}</span>}
+      {value > 0 && <span style={{ marginLeft: "6px", fontSize: "14px", color: "#f59e0b", fontWeight: 700 }}>{value.toFixed(1)}</span>}
     </div>
   );
 }
@@ -475,6 +539,40 @@ const detailStyles = {
     color: "#cbd5e1",
     fontWeight: 500,
   },
+};
+
+const modalStyles = {
+  overlay: {
+    position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", 
+    backdropFilter: "blur(6px)", zIndex: 1000, 
+    display: "flex", alignItems: "center", justifyContent: "center", padding: "20px"
+  },
+  container: {
+    background: "linear-gradient(135deg,#1e293b,#0f172a)", 
+    border: "1px solid rgba(255,255,255,0.12)", borderRadius: "24px", 
+    padding: "32px", width: "100%", maxWidth: "420px", 
+    boxShadow: "0 32px 80px rgba(0,0,0,0.6)"
+  },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" },
+  title: { color: "#f1f5f9", fontSize: "18px", fontWeight: 800, margin: 0 },
+  closeBtn: { width: "32px", height: "32px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.08)", color: "#94a3b8", cursor: "pointer" },
+  subText: { fontSize: "14px", color: "#94a3b8", marginBottom: "16px" },
+  starsRow: { display: "flex", gap: "6px", marginBottom: "24px" },
+  label: { fontSize: "12px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" },
+  textarea: {
+    width: "100%", height: "120px", background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.12)", borderRadius: "12px",
+    padding: "14px", color: "#f1f5f9", fontSize: "14px",
+    outline: "none", resize: "none", boxSizing: "border-box", transition: "all 0.2s"
+  },
+  btnRow: { display: "flex", gap: "10px", marginTop: "24px" },
+  submitBtn: { 
+    flex: 1, padding: "14px", borderRadius: "12px", 
+    background: "linear-gradient(135deg,#38bdf8,#818cf8)", 
+    color: "#fff", border: "none", fontWeight: 700, cursor: "pointer",
+    boxShadow: "0 8px 16px rgba(56,189,248,0.25)"
+  },
+  cancelBtn: { padding: "14px 20px", borderRadius: "12px", background: "rgba(255,255,255,0.06)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)", fontWeight: 600, cursor: "pointer" }
 };
 
 export default MyBookings;

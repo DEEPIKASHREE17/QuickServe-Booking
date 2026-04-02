@@ -75,6 +75,7 @@ export default function Module4() {
   const [loading,     setLoading]     = useState(true);
   const [activeTab,   setActiveTab]   = useState("ALL");
   const [selected,    setSelected]    = useState(null);  // detail modal
+  const [ratingModal, setRatingModal] = useState(null); // { booking, rating }
   const [actionMsg,   setActionMsg]   = useState("");
 
   // ── Fetch ──────────────────────────────────────────────────────────
@@ -119,17 +120,17 @@ export default function Module4() {
   };
 
   // ── Rate ───────────────────────────────────────────────────────────
-  const rateBooking = (booking, rating) => {
+  const rateBooking = (booking, rating, feedback = "") => {
     // Optimistic UI
-    const updated = bookings.map((b) => b.id === booking.id ? { ...b, rating } : b);
+    const updated = bookings.map((b) => b.id === booking.id ? { ...b, rating, feedback } : b);
     setBookings(updated);
     if (selected && selected.id === booking.id) {
-      setSelected({ ...selected, rating });
+      setSelected({ ...selected, rating, feedback });
     }
 
     // Sync localStorage bookings
     const all = JSON.parse(localStorage.getItem("bookings") || "[]");
-    localStorage.setItem("bookings", JSON.stringify(all.map((b) => b.id === booking.id ? { ...b, rating } : b)));
+    localStorage.setItem("bookings", JSON.stringify(all.map((b) => b.id === booking.id ? { ...b, rating, feedback } : b)));
 
     // Update Provider's overall rating in localStorage
     const users = JSON.parse(localStorage.getItem("users") || "[]");
@@ -226,7 +227,7 @@ export default function Module4() {
               booking={b}
               onCancel={cancelBooking}
               onView={() => setSelected(b)}
-              onRate={rateBooking}
+              onRate={(booking, rating) => setRatingModal({ booking, rating })}
             />
           ))}
         </div>
@@ -238,7 +239,20 @@ export default function Module4() {
           booking={selected}
           onClose={() => setSelected(null)}
           onCancel={cancelBooking}
-          onRate={rateBooking}
+          onRate={(booking, rating) => setRatingModal({ booking, rating })}
+        />
+      )}
+
+      {/* Feedback Pop-up */}
+      {ratingModal && (
+        <FeedbackModal
+          booking={ratingModal.booking}
+          initialRating={ratingModal.rating}
+          onClose={() => setRatingModal(null)}
+          onSubmit={(rating, fb) => {
+            rateBooking(ratingModal.booking, rating, fb);
+            setRatingModal(null);
+          }}
         />
       )}
     </div>
@@ -288,7 +302,12 @@ function BookingCard({ booking, onCancel, onView, onRate }) {
           <p style={{ fontSize: "11px", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
             {booking.rating ? "Your Rating" : "Rate Provider"}
           </p>
-          <StarRating value={booking.rating || 0} onChange={val => onRate(booking, val)} readonly={!!booking.rating} />
+          <StarRating 
+            value={booking.rating || 0} 
+            onChange={val => onRate(booking, val)} 
+            readonly={!!booking.rating} 
+            onRateClick={(r) => !booking.rating && onRate(booking, r)} 
+          />
         </div>
       )}
     </div>
@@ -326,13 +345,33 @@ function DetailModal({ booking, onClose, onCancel, onRate }) {
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: "10px", marginTop: "24px", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            {booking.status === "COMPLETED" && (
-              <StarRating value={booking.rating || 0} onChange={val => onRate(booking, val)} readonly={!!booking.rating} />
-            )}
-          </div>
-          <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "24px" }}>
+          {booking.status === "COMPLETED" && (
+            <>
+              {!booking.rating ? (
+                <>
+                  <p style={{ fontSize: "11px", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
+                    Rate Provider
+                  </p>
+                  <StarRating 
+                    value={0} 
+                    onRateClick={(r) => onRate(booking, r)} 
+                  />
+                </>
+              ) : (
+                <div style={{ background: "rgba(255,255,255,0.03)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <StarRating value={booking.rating} readonly />
+                  {booking.feedback && (
+                    <p style={{ marginTop: "10px", fontSize: "14px", color: "#94a3b8", fontStyle: "italic" }}>
+                      "{booking.feedback}"
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          <div style={{ display: "flex", gap: "10px", marginTop: "10px", justifyContent: "flex-end" }}>
             {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
               <Btn label="Cancel Booking" onClick={() => onCancel(booking)} color="#ef4444" />
             )}
@@ -344,14 +383,88 @@ function DetailModal({ booking, onClose, onCancel, onRate }) {
   );
 }
 
-function StarRating({ value, onChange, readonly }) {
+function FeedbackModal({ booking, initialRating, onClose, onSubmit }) {
+  const [rating, setRating] = useState(initialRating);
+  const [feedback, setFeedback] = useState("");
+  const [hover, setHover] = useState(0);
+
+  return (
+    <div style={overlay} onClick={onClose}>
+      <div style={{ ...modal, maxWidth: "420px" }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <h2 style={{ color: "#f1f5f9", fontSize: "18px", fontWeight: 800, margin: 0 }}>Feedback for {booking.serviceName}</h2>
+          <button onClick={onClose} style={closeBtn}>✕</button>
+        </div>
+
+        <p style={{ fontSize: "14px", color: "#94a3b8", marginBottom: "16px" }}>How would you rate your experience with {booking.providerName}?</p>
+        
+        <div style={{ display: "flex", gap: "6px", marginBottom: "24px" }}>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
+              onClick={() => setRating(star)}
+              onMouseEnter={() => setHover(star)}
+              onMouseLeave={() => setHover(0)}
+              style={{
+                cursor: "pointer",
+                fontSize: "32px",
+                color: star <= (hover || rating) ? "#f59e0b" : "rgba(255,255,255,0.15)",
+                transition: "color 0.2s"
+              }}
+            >
+              ★
+            </span>
+          ))}
+        </div>
+
+        <p style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Message (Optional)</p>
+        <textarea
+          placeholder="Share your experience with the provider..."
+          value={feedback}
+          onChange={e => setFeedback(e.target.value)}
+          style={{
+            width: "100%", height: "120px", background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.12)", borderRadius: "12px",
+            padding: "14px", color: "#f1f5f9", fontSize: "14px",
+            outline: "none", resize: "none", boxSizing: "border-box",
+            transition: "all 0.2s"
+          }}
+          onFocus={e => e.target.style.borderColor = "#38bdf8"}
+          onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.12)"}
+        />
+
+        <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
+          <button 
+            onClick={() => onSubmit(rating, feedback)}
+            style={{ 
+              flex: 1, padding: "14px", borderRadius: "12px", 
+              background: "linear-gradient(135deg,#38bdf8,#818cf8)", 
+              color: "#fff", border: "none", fontWeight: 700, cursor: "pointer",
+              boxShadow: "0 8px 16px rgba(56,189,248,0.25)"
+            }}
+          >
+            Submit Feedback
+          </button>
+          <button onClick={onClose} style={{ padding: "14px 20px", borderRadius: "12px", background: "rgba(255,255,255,0.06)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)", fontWeight: 600, cursor: "pointer" }}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StarRating({ value, onChange, readonly, onRateClick }) {
   const [hover, setHover] = useState(0);
   return (
     <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
       {[1, 2, 3, 4, 5].map((star) => (
         <span
           key={star}
-          onClick={() => !readonly && onChange(star)}
+          onClick={() => {
+            if (!readonly) {
+              if (onRateClick) onRateClick(star);
+              else if (onChange) onChange(star);
+            }
+          }}
           onMouseEnter={() => !readonly && setHover(star)}
           onMouseLeave={() => !readonly && setHover(0)}
           style={{
@@ -364,7 +477,7 @@ function StarRating({ value, onChange, readonly }) {
           ★
         </span>
       ))}
-      {readonly && value > 0 && <span style={{ marginLeft: "6px", fontSize: "14px", color: "#f59e0b", fontWeight: 700 }}>{value.toFixed(1)}</span>}
+      {value > 0 && <span style={{ marginLeft: "6px", fontSize: "14px", color: "#f59e0b", fontWeight: 700 }}>{value.toFixed(1)}</span>}
     </div>
   );
 }

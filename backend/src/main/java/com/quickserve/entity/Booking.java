@@ -10,19 +10,37 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "booking_id")
     private Long bookingId;
 
+    @Column(name = "customer_name")
     private String customerName;
+
+    @Column(name = "service_name")
     private String serviceName;
+
+    @Column(name = "amount")
     private Double amount;
+
+    @Column(name = "booking_date")
     private LocalDate bookingDate;
+
+    @Column(name = "booking_time")
     private LocalTime bookingTime;
+
+    @Column(name = "address")
     private String address;
 
-    private String status; // PENDING, PAID, CONFIRMED, FAILED
+    @Column(name = "status")
+    private String status;
 
+    @Column(name = "razorpay_order_id")
     private String razorpayOrderId;
+
+    @Column(name = "razorpay_payment_id")
     private String razorpayPaymentId;
+
+    @Column(name = "razorpay_signature")
     private String razorpaySignature;
 
     public Booking() {

@@ -17,27 +17,35 @@ public class User {
 
     private String password;
 
+    private String role;
+
     private String phone;
 
-    private String role; // CUSTOMER / PROVIDER / ADMIN
-
     private String location;
+
+    @Column(name = "blocked")
+    private boolean blocked = false;
 
     public User() {
     }
 
-    public User(Long id, String name, String email, String password, String phone, String role, String location) {
+    public User(Long id, String name, String email, String password, String role, String phone, String location, boolean blocked) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.password = password;
-        this.phone = phone;
         this.role = role;
+        this.phone = phone;
         this.location = location;
+        this.blocked = blocked;
     }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -46,10 +54,6 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getEmail() {
@@ -68,14 +72,6 @@ public class User {
         this.password = password;
     }
 
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
     public String getRole() {
         return role;
     }
@@ -84,11 +80,27 @@ public class User {
         this.role = role;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     public String getLocation() {
         return location;
     }
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
     }
 }

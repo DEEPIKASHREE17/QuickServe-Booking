@@ -1,11 +1,14 @@
 package com.quickserve.service;
 
 import com.quickserve.dto.LoginRequest;
+import com.quickserve.dto.RegisterRequest;
 import com.quickserve.entity.User;
 import com.quickserve.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -16,52 +19,92 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User register(com.quickserve.dto.RegisterRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
+    public String register(RegisterRequest request) {
+        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+
+        if (existingUser.isPresent()) {
+            return "Email already exists";
         }
 
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setRole(request.getRole() != null ? request.getRole() : "CUSTOMER");
-        user.setLocation(request.getLocation());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
 
-        return userRepository.save(user);
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        } else {
+            user.setPhone("");
+        }
+
+        if (request.getLocation() != null) {
+            user.setLocation(request.getLocation());
+        } else {
+            user.setLocation("");
+        }
+
+        user.setBlocked(false);
+
+        userRepository.save(user);
+        return "User registered successfully";
     }
 
-    public User login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public String login(LoginRequest request) {
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+
+        if (optionalUser.isEmpty()) {
+            return "User not found";
+        }
+
+        User user = optionalUser.get();
+
+        if (user.isBlocked()) {
+            return "Your account is blocked by admin";
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            return "Invalid password";
         }
 
-        return user;
+        return "Login successful";
     }
 
-    public User getProfile(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public User getProfile(Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        return optionalUser.orElse(null);
     }
 
-    public User updateProfile(Long id, User updatedUser) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public String updateProfile(Long userId, User updatedUser) {
+        Optional<User> optionalUser = userRepository.findById(userId);
 
-        user.setName(updatedUser.getName());
-        user.setEmail(updatedUser.getEmail());
-        user.setPhone(updatedUser.getPhone());
-        user.setRole(updatedUser.getRole());
-        user.setLocation(updatedUser.getLocation());
-
-        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        if (optionalUser.isEmpty()) {
+            return "User not found";
         }
 
-        return userRepository.save(user);
+        User existingUser = optionalUser.get();
+
+        if (updatedUser.getName() != null && !updatedUser.getName().isEmpty()) {
+            existingUser.setName(updatedUser.getName());
+        }
+
+        if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()) {
+            existingUser.setEmail(updatedUser.getEmail());
+        }
+
+        if (updatedUser.getPhone() != null) {
+            existingUser.setPhone(updatedUser.getPhone());
+        }
+
+        if (updatedUser.getLocation() != null) {
+            existingUser.setLocation(updatedUser.getLocation());
+        }
+
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
+
+        userRepository.save(existingUser);
+        return "Profile updated successfully";
     }
 }

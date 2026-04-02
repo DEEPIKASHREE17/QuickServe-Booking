@@ -2,34 +2,20 @@ package com.quickserve.dto;
 
 public class CreateOrderRequest {
 
-    private Integer amount;
-    private String currency;
-    private String receipt;
+    private int amount;
 
     public CreateOrderRequest() {
     }
 
-    public Integer getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Integer amount) {
+    public CreateOrderRequest(int amount) {
         this.amount = amount;
     }
 
-    public String getCurrency() {
-        return currency;
+    public int getAmount() {
+        return amount;
     }
 
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public String getReceipt() {
-        return receipt;
-    }
-
-    public void setReceipt(String receipt) {
-        this.receipt = receipt;
+    public void setAmount(int amount) {
+        this.amount = amount;
     }
 }

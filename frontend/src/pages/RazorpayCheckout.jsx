@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { createRazorpayOrder, verifyRazorpayPayment } from "../services/paymentApi";
 
 function RazorpayCheckout() {
   const [amount, setAmount] = useState(500);
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -21,54 +20,85 @@ function RazorpayCheckout() {
     });
   };
 
+  const createOrder = async () => {
+    const response = await fetch("http://localhost:8081/api/payment/create-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: Number(amount) * 100,
+        currency: "INR",
+        receipt: "receipt_" + new Date().getTime(),
+      }),
+    });
+
+    return await response.json();
+  };
+
+  const verifyPayment = async (paymentResponse) => {
+    const response = await fetch("http://localhost:8081/api/payment/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        razorpayOrderId: paymentResponse.razorpay_order_id,
+        razorpayPaymentId: paymentResponse.razorpay_payment_id,
+        razorpaySignature: paymentResponse.razorpay_signature,
+      }),
+    });
+
+    return await response.json();
+  };
+
   const handlePayment = async () => {
     try {
       setLoading(true);
       setMessage("");
 
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
+      const isLoaded = await loadRazorpayScript();
+
+      if (!isLoaded) {
         setMessage("Razorpay SDK failed to load");
         setLoading(false);
         return;
       }
 
-      const amountInPaise = Number(amount) * 100;
+      const orderData = await createOrder();
 
-      const orderResponse = await createRazorpayOrder(amountInPaise);
-
-      if (!orderResponse.success) {
-        setMessage(orderResponse.message || "Failed to create order");
+      if (!orderData.success) {
+        setMessage(orderData.message || "Order creation failed");
         setLoading(false);
         return;
       }
 
       const options = {
-        key: orderResponse.key,
-        amount: orderResponse.amount,
-        currency: orderResponse.currency,
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency,
         name: "QuickServe",
         description: "Test Payment",
-        order_id: orderResponse.orderId,
+        order_id: orderData.orderId,
         handler: async function (response) {
-          const verifyResponse = await verifyRazorpayPayment(response);
+          const verifyData = await verifyPayment(response);
 
-          if (verifyResponse.success) {
+          if (verifyData.success) {
             setMessage("Payment successful and verified");
           } else {
-            setMessage("Payment done but verification failed");
+            setMessage("Payment completed but verification failed");
           }
         },
         prefill: {
-          name: "Bhuvana",
-          email: "bhuvana@example.com",
+          name: "Customer",
+          email: "customer@example.com",
           contact: "9999999999",
         },
         notes: {
-          project: "QuickServe",
+          app: "QuickServe",
         },
         theme: {
-          color: "#3399cc",
+          color: "#0f172a",
         },
         modal: {
           ondismiss: function () {
@@ -80,8 +110,8 @@ function RazorpayCheckout() {
       const paymentObject = new window.Razorpay(options);
       paymentObject.open();
     } catch (error) {
-      console.error(error);
-      setMessage("Something went wrong while starting payment");
+      console.error("Payment error:", error);
+      setMessage("Something went wrong during payment");
     } finally {
       setLoading(false);
     }
@@ -90,9 +120,9 @@ function RazorpayCheckout() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Razorpay Test Payment</h2>
+        <h2 style={styles.heading}>Razorpay Test Payment</h2>
 
-        <label style={styles.label}>Amount in Rupees</label>
+        <label style={styles.label}>Enter Amount (₹)</label>
         <input
           type="number"
           value={amount}
@@ -117,7 +147,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "#f4f7fb",
+    background: "#f8fafc",
     padding: "20px",
   },
   card: {
@@ -126,26 +156,27 @@ const styles = {
     background: "#ffffff",
     padding: "30px",
     borderRadius: "16px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
   },
-  title: {
-    marginBottom: "20px",
+  heading: {
     textAlign: "center",
-    color: "#1f2937",
+    marginBottom: "20px",
+    color: "#0f172a",
   },
   label: {
     display: "block",
     marginBottom: "8px",
     fontWeight: "600",
-    color: "#374151",
+    color: "#334155",
   },
   input: {
     width: "100%",
     padding: "12px",
-    marginBottom: "18px",
+    marginBottom: "20px",
     borderRadius: "10px",
-    border: "1px solid #d1d5db",
+    border: "1px solid #cbd5e1",
     fontSize: "16px",
+    outline: "none",
   },
   button: {
     width: "100%",

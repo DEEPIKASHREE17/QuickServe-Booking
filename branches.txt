@@ -1,0 +1,8 @@
+﻿  backend-dev
+* frontend-dev
+  main
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/backend-dev
+  remotes/origin/frontend-dev
+  remotes/origin/main
+  remotes/origin/master

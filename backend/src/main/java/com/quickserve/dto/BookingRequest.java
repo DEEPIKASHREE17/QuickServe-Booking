@@ -5,41 +5,38 @@ import java.time.LocalTime;
 
 public class BookingRequest {
 
-    private Long customerId;
-    private Long providerId;
-    private Long providerServiceId;
+    private String customerName;
+    private String serviceName;
+    private Double amount;
     private LocalDate bookingDate;
-    private LocalDate serviceDate;
-    private LocalTime serviceTime;
-    private Double totalAmount;
+    private LocalTime bookingTime;
     private String address;
-    private String notes;
 
     public BookingRequest() {
     }
 
-    public Long getCustomerId() {
-        return customerId;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
-    public Long getProviderId() {
-        return providerId;
+    public String getServiceName() {
+        return serviceName;
     }
 
-    public void setProviderId(Long providerId) {
-        this.providerId = providerId;
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
-    public Long getProviderServiceId() {
-        return providerServiceId;
+    public Double getAmount() {
+        return amount;
     }
 
-    public void setProviderServiceId(Long providerServiceId) {
-        this.providerServiceId = providerServiceId;
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 
     public LocalDate getBookingDate() {
@@ -50,28 +47,12 @@ public class BookingRequest {
         this.bookingDate = bookingDate;
     }
 
-    public LocalDate getServiceDate() {
-        return serviceDate;
+    public LocalTime getBookingTime() {
+        return bookingTime;
     }
 
-    public void setServiceDate(LocalDate serviceDate) {
-        this.serviceDate = serviceDate;
-    }
-
-    public LocalTime getServiceTime() {
-        return serviceTime;
-    }
-
-    public void setServiceTime(LocalTime serviceTime) {
-        this.serviceTime = serviceTime;
-    }
-
-    public Double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setBookingTime(LocalTime bookingTime) {
+        this.bookingTime = bookingTime;
     }
 
     public String getAddress() {
@@ -80,13 +61,5 @@ public class BookingRequest {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
     }
 }

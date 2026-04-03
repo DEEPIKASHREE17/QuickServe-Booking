@@ -1,0 +1,66 @@
+﻿ .vscode/settings.json                              |   3 -
+ backend/backend_log.txt                            | Bin 190852 -> 0 bytes
+ backend/pom.xml                                    |  93 ++++++++-----
+ backend/src/main/java/com/pom.xml                  |  65 +++++----
+ .../java/com/quickserve/config/SecurityConfig.java |  29 ----
+ .../com/quickserve/controller/AdminController.java |  43 ++++++
+ .../com/quickserve/controller/AuthController.java  |  63 +++++----
+ .../quickserve/controller/BookingController.java   |  86 +++++-------
+ .../quickserve/controller/PaymentController.java   |  88 +++---------
+ .../com/quickserve/controller/TestController.java  |  20 ---
+ .../java/com/quickserve/dto/BookingRequest.java    |  67 +++------
+ .../java/com/quickserve/dto/BookingResponse.java   |  85 ++++--------
+ .../com/quickserve/dto/CreateOrderRequest.java     |  21 +++
+ .../com/quickserve/dto/PaymentOrderRequest.java    |  41 ++++++
+ .../com/quickserve/dto/PaymentOrderResponse.java   |  51 +++++++
+ .../com/quickserve/dto/PaymentVerifyRequest.java   |  41 ++++++
+ .../com/quickserve/dto/VerifyPaymentRequest.java   |  35 +++++
+ .../main/java/com/quickserve/entity/Booking.java   | 109 ++++++++-------
+ .../src/main/java/com/quickserve/entity/User.java  |  44 +++---
+ .../quickserve/repository/BookingRepository.java   |  11 +-
+ .../security/JwtAuthenticationFilter.java          |  31 ++++-
+ .../com/quickserve/security/SecurityConfig.java    |  44 ++++++
+ .../java/com/quickserve/service/AdminService.java  |  59 ++++++++
+ .../com/quickserve/service/BookingService.java     | 140 ++++---------------
+ .../com/quickserve/service/PaymentService.java     |  61 ++++++++
+ .../java/com/quickserve/service/UserService.java   |  95 +++++++++----
+ backend/src/main/resources/application.properties  |  11 +-
+ backend/target/classes/application.properties      |  11 +-
+ backend/target/classes/com/pom.xml                 | 117 ----------------
+ .../com/quickserve/config/SecurityConfig.class     | Bin 3625 -> 0 bytes
+ .../quickserve/controller/AdminController.class    | Bin 0 -> 2565 bytes
+ .../com/quickserve/controller/AuthController.class | Bin 3960 -> 3675 bytes
+ .../quickserve/controller/BookingController.class  | Bin 4266 -> 4565 bytes
+ .../quickserve/controller/PaymentController.class  | Bin 5220 -> 2761 bytes
+ .../com/quickserve/controller/TestController.class | Bin 853 -> 0 bytes
+ .../com/quickserve/dto/BookingRequest.class        | Bin 2588 -> 1878 bytes
+ .../com/quickserve/dto/BookingResponse.class       | Bin 3414 -> 2808 bytes
+ .../com/quickserve/dto/CreateOrderRequest.class    | Bin 0 -> 651 bytes
+ .../com/quickserve/dto/PaymentOrderRequest.class   | Bin 0 -> 1218 bytes
+ .../com/quickserve/dto/PaymentOrderResponse.class  | Bin 0 -> 1453 bytes
+ .../com/quickserve/dto/PaymentVerifyRequest.class  | Bin 0 -> 1305 bytes
+ .../com/quickserve/dto/VerifyPaymentRequest.class  | Bin 0 -> 1104 bytes
+ .../classes/com/quickserve/entity/Booking.class    | Bin 4079 -> 3647 bytes
+ .../classes/com/quickserve/entity/User.class       | Bin 2527 -> 2805 bytes
+ .../quickserve/repository/BookingRepository.class  | Bin 801 -> 433 bytes
+ .../security/JwtAuthenticationFilter.class         | Bin 3653 -> 4145 bytes
+ .../com/quickserve/security/SecurityConfig.class   | Bin 0 -> 5523 bytes
+ .../com/quickserve/service/AdminService.class      | Bin 0 -> 2332 bytes
+ .../com/quickserve/service/BookingService.class    | Bin 9006 -> 4225 bytes
+ .../com/quickserve/service/PaymentService.class    | Bin 0 -> 3949 bytes
+ .../com/quickserve/service/UserService.class       | Bin 4008 -> 3647 bytes
+ .../compile/default-compile/createdFiles.lst       |  50 +++++++
+ .../compile/default-compile/inputFiles.lst         | 105 +++++++-------
+ frontend/package-lock.json                         |   6 +-
+ frontend/src/App.jsx                               |  38 ++---
+ frontend/src/pages/Categories.jsx                  |   8 +-
+ frontend/src/pages/Dashboard.jsx                   |   7 -
+ frontend/src/pages/Module4.jsx                     | 153 +++------------------
+ frontend/src/pages/Module5.jsx                     |   6 -
+ frontend/src/pages/MyBookings.jsx                  | 114 ++-------------
+ frontend/src/pages/ProviderDashboard.jsx           |  46 +------
+ frontend/src/pages/RazorpayCheckout.jsx            |  97 ++++++++-----
+ frontend/src/services/api.js                       |   2 +-
+ frontend/src/services/paymentApi.js                |   2 +-
+ frontend/src/ui/Navbar.jsx                         |   7 +-
+ 65 files changed, 1057 insertions(+), 1148 deletions(-)

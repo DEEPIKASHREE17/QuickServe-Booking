@@ -2,83 +2,69 @@ package com.quickserve.controller;
 
 import com.quickserve.dto.BookingRequest;
 import com.quickserve.dto.BookingResponse;
-import com.quickserve.dto.BookingStatusUpdateRequest;
+import com.quickserve.dto.CreateOrderRequest;
+import com.quickserve.dto.VerifyPaymentRequest;
 import com.quickserve.service.BookingService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import com.quickserve.service.PaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173")
 public class BookingController {
 
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
+    private final PaymentService paymentService;
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createBooking(@RequestBody BookingRequest request) {
-        try {
-            BookingResponse response = bookingService.createBooking(request);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public BookingController(BookingService bookingService, PaymentService paymentService) {
+        this.bookingService = bookingService;
+        this.paymentService = paymentService;
     }
 
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<?> getBookingsByCustomer(@PathVariable Long customerId) {
-        try {
-            List<BookingResponse> responses = bookingService.getBookingsByCustomer(customerId);
-            return new ResponseEntity<>(responses, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    @PostMapping
+    public ResponseEntity<BookingResponse> createBooking(@RequestBody BookingRequest request) {
+        return ResponseEntity.ok(bookingService.createBooking(request));
     }
 
-    @GetMapping("/provider/{providerId}")
-    public ResponseEntity<?> getBookingsByProvider(@PathVariable Long providerId) {
-        try {
-            List<BookingResponse> responses = bookingService.getBookingsByProvider(providerId);
-            return new ResponseEntity<>(responses, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    @GetMapping
+    public ResponseEntity<List<BookingResponse>> getAllBookings() {
+        return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<?> getBookingById(@PathVariable Long bookingId) {
+    public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(bookingService.getBookingById(bookingId));
+    }
+
+    @PostMapping("/{bookingId}/create-order")
+    public ResponseEntity<?> createOrderForBooking(@PathVariable Long bookingId,
+                                                   @RequestBody CreateOrderRequest request) {
         try {
-            BookingResponse response = bookingService.getBookingById(bookingId);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            Map<String, Object> response = paymentService.createOrderForBooking(bookingId, request);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
         }
     }
 
-    @PutMapping("/status/{bookingId}")
-    public ResponseEntity<?> updateBookingStatus(
-            @PathVariable Long bookingId,
-            @RequestBody BookingStatusUpdateRequest request
-    ) {
+    @PostMapping("/{bookingId}/verify-payment")
+    public ResponseEntity<?> verifyPayment(@PathVariable Long bookingId,
+                                           @RequestBody VerifyPaymentRequest request) {
         try {
-            BookingResponse response = bookingService.updateBookingStatus(bookingId, request.getStatus());
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            Map<String, Object> response = paymentService.verifyPaymentAndUpdateBooking(bookingId, request);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @PutMapping("/cancel/{bookingId}")
-    public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
-        try {
-            BookingResponse response = bookingService.cancelBooking(bookingId);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
         }
     }
 }

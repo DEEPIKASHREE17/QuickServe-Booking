@@ -10,39 +10,38 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "booking_id")
     private Long bookingId;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false)
-    private User customer;
+    @Column(name = "customer_name")
+    private String customerName;
 
-    @ManyToOne
-    @JoinColumn(name = "provider_id", nullable = false)
-    private Provider provider;
+    @Column(name = "service_name")
+    private String serviceName;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    @Column(name = "amount")
+    private Double amount;
 
-    @Column(nullable = false)
+    @Column(name = "booking_date")
     private LocalDate bookingDate;
 
-    @Column(nullable = false)
-    private LocalDate serviceDate;
+    @Column(name = "booking_time")
+    private LocalTime bookingTime;
 
-    @Column(nullable = false)
-    private LocalTime serviceTime;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus status;
-
-    @Column(nullable = false)
-    private Double totalAmount;
-
+    @Column(name = "address")
     private String address;
 
-    private String notes;
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "razorpay_order_id")
+    private String razorpayOrderId;
+
+    @Column(name = "razorpay_payment_id")
+    private String razorpayPaymentId;
+
+    @Column(name = "razorpay_signature")
+    private String razorpaySignature;
 
     public Booking() {
     }
@@ -55,28 +54,28 @@ public class Booking {
         this.bookingId = bookingId;
     }
 
-    public User getCustomer() {
-        return customer;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setCustomer(User customer) {
-        this.customer = customer;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
-    public Provider getProvider() {
-        return provider;
+    public String getServiceName() {
+        return serviceName;
     }
 
-    public void setProvider(Provider provider) {
-        this.provider = provider;
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
-    public Category getCategory() {
-        return category;
+    public Double getAmount() {
+        return amount;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 
     public LocalDate getBookingDate() {
@@ -87,36 +86,12 @@ public class Booking {
         this.bookingDate = bookingDate;
     }
 
-    public LocalDate getServiceDate() {
-        return serviceDate;
+    public LocalTime getBookingTime() {
+        return bookingTime;
     }
 
-    public void setServiceDate(LocalDate serviceDate) {
-        this.serviceDate = serviceDate;
-    }
-
-    public LocalTime getServiceTime() {
-        return serviceTime;
-    }
-
-    public void setServiceTime(LocalTime serviceTime) {
-        this.serviceTime = serviceTime;
-    }
-
-    public BookingStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(BookingStatus status) {
-        this.status = status;
-    }
-
-    public Double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setBookingTime(LocalTime bookingTime) {
+        this.bookingTime = bookingTime;
     }
 
     public String getAddress() {
@@ -127,11 +102,35 @@ public class Booking {
         this.address = address;
     }
 
-    public String getNotes() {
-        return notes;
+    public String getStatus() {
+        return status;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getRazorpayOrderId() {
+        return razorpayOrderId;
+    }
+
+    public void setRazorpayOrderId(String razorpayOrderId) {
+        this.razorpayOrderId = razorpayOrderId;
+    }
+
+    public String getRazorpayPaymentId() {
+        return razorpayPaymentId;
+    }
+
+    public void setRazorpayPaymentId(String razorpayPaymentId) {
+        this.razorpayPaymentId = razorpayPaymentId;
+    }
+
+    public String getRazorpaySignature() {
+        return razorpaySignature;
+    }
+
+    public void setRazorpaySignature(String razorpaySignature) {
+        this.razorpaySignature = razorpaySignature;
     }
 }

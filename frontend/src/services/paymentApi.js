@@ -30,4 +30,8 @@ export async function verifyRazorpayPayment(paymentData) {
   });
 
   return await response.json();
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/backend-dev

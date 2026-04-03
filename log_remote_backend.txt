@@ -1,0 +1,5 @@
+﻿31c77fc Updated backend booking and Razorpay integration
+1a85a46 Connected booking, Razorpay, and booking status update
+336115b Removed wrong paymentApi.js location
+1f73eec Added Razorpay payment integration and updated backend
+5f5c58a feat: complete module 4 and 5 UI enhancements

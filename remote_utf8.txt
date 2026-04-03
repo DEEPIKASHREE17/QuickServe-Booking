@@ -1,0 +1,2 @@
+﻿origin	https://github.com/DEEPIKASHREE17/QuickServe-Booking.git (fetch)
+origin	https://github.com/DEEPIKASHREE17/QuickServe-Booking.git (push)

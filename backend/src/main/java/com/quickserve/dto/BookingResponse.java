@@ -6,18 +6,15 @@ import java.time.LocalTime;
 public class BookingResponse {
 
     private Long bookingId;
-    private Long customerId;
     private String customerName;
-    private Long providerId;
-    private String providerName;
     private String serviceName;
+    private Double amount;
     private LocalDate bookingDate;
-    private LocalDate serviceDate;
-    private LocalTime serviceTime;
-    private String status;
-    private Double totalAmount;
+    private LocalTime bookingTime;
     private String address;
-    private String notes;
+    private String status;
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
 
     public BookingResponse() {
     }
@@ -30,36 +27,12 @@ public class BookingResponse {
         this.bookingId = bookingId;
     }
 
-    public Long getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
-
     public String getCustomerName() {
         return customerName;
     }
 
     public void setCustomerName(String customerName) {
         this.customerName = customerName;
-    }
-
-    public Long getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(Long providerId) {
-        this.providerId = providerId;
-    }
-
-    public String getProviderName() {
-        return providerName;
-    }
-
-    public void setProviderName(String providerName) {
-        this.providerName = providerName;
     }
 
     public String getServiceName() {
@@ -70,6 +43,14 @@ public class BookingResponse {
         this.serviceName = serviceName;
     }
 
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
     public LocalDate getBookingDate() {
         return bookingDate;
     }
@@ -78,36 +59,12 @@ public class BookingResponse {
         this.bookingDate = bookingDate;
     }
 
-    public LocalDate getServiceDate() {
-        return serviceDate;
+    public LocalTime getBookingTime() {
+        return bookingTime;
     }
 
-    public void setServiceDate(LocalDate serviceDate) {
-        this.serviceDate = serviceDate;
-    }
-
-    public LocalTime getServiceTime() {
-        return serviceTime;
-    }
-
-    public void setServiceTime(LocalTime serviceTime) {
-        this.serviceTime = serviceTime;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setBookingTime(LocalTime bookingTime) {
+        this.bookingTime = bookingTime;
     }
 
     public String getAddress() {
@@ -118,11 +75,27 @@ public class BookingResponse {
         this.address = address;
     }
 
-    public String getNotes() {
-        return notes;
+    public String getStatus() {
+        return status;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getRazorpayOrderId() {
+        return razorpayOrderId;
+    }
+
+    public void setRazorpayOrderId(String razorpayOrderId) {
+        this.razorpayOrderId = razorpayOrderId;
+    }
+
+    public String getRazorpayPaymentId() {
+        return razorpayPaymentId;
+    }
+
+    public void setRazorpayPaymentId(String razorpayPaymentId) {
+        this.razorpayPaymentId = razorpayPaymentId;
     }
 }

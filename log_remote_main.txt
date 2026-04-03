@@ -1,0 +1,5 @@
+﻿7cbec37 Merge branch 'main' of https://github.com/DEEPIKASHREE17/QuickServe-Booking
+f1d7bee Create README.md
+db31bfa Delete backend directory
+e1be050 Delete backend/src directory
+2f93f15 Delete backend/src/pages directory

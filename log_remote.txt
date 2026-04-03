@@ -1,0 +1,10 @@
+﻿6c5af12 Save local Razorpay implementation
+80c1376 Fix service provider login redirection and role-based access
+5f5c58a feat: complete module 4 and 5 UI enhancements
+1151904 ignore vscode settings
+5d6ee1f Merge branch 'backend-dev' of https://github.com/DEEPIKASHREE17/QuickServe-Booking into backend-dev
+daab965 updated backend
+1ec0fe0 updated backend code
+5aa7518 Updated backend code
+7cbec37 Merge branch 'main' of https://github.com/DEEPIKASHREE17/QuickServe-Booking
+f1d7bee Create README.md

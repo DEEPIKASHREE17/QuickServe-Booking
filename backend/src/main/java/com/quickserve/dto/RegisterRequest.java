@@ -7,17 +7,27 @@ public class RegisterRequest {
     private String phone;
     private String role;
     private String location;
+    private String adminKey;
 
     public RegisterRequest() {
     }
 
-    public RegisterRequest(String name, String email, String password, String phone, String role, String location) {
+    public RegisterRequest(String name, String email, String password, String phone, String role, String location, String adminKey) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.phone = phone;
         this.role = role;
         this.location = location;
+        this.adminKey = adminKey;
+    }
+
+    public String getAdminKey() {
+        return adminKey;
+    }
+
+    public void setAdminKey(String adminKey) {
+        this.adminKey = adminKey;
     }
 
     public String getName() {

@@ -64,6 +64,95 @@ function MyBookings() {
     localStorage.setItem("users", JSON.stringify(updatedUsers));
   };
 
+  // ── Payment ───────────────────────────────────────────────────────
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePayment = async (booking) => {
+    try {
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        alert("Razorpay SDK failed to load");
+        return;
+      }
+
+      // 1. Create order on backend
+      const amountInPaise = Math.round((booking.totalCost || booking.cost || 0) * 100);
+      const orderRes = await axios.post(`http://localhost:8081/api/payment/${booking.id}/create-order`, {
+        amount: amountInPaise
+      });
+
+      const orderData = orderRes.data;
+      if (!orderData.success) {
+        alert(orderData.message || "Order creation failed");
+        return;
+      }
+
+      // 2. Open Razorpay popup
+      const options = {
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "QuickServe",
+        description: `Payment for ${booking.categoryName}`,
+        order_id: orderData.orderId,
+        handler: async function (response) {
+          try {
+            // 3. Verify payment on backend
+            const verifyRes = await axios.post(`http://localhost:8081/api/payment/${booking.id}/verify-payment`, {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+
+            if (verifyRes.data.success) {
+              alert("Payment successful!");
+              // Optimistically update status to 'Confirmed' or similar
+              updateBookingStatus(booking.id, "Confirmed");
+            } else {
+              alert("Payment verification failed");
+            }
+          } catch (err) {
+            console.error("Verification error", err);
+            alert("Verification error: " + err.message);
+          }
+        },
+        prefill: {
+          name: user.name || "Customer",
+          email: user.email || "customer@example.com",
+        },
+        theme: { color: "#38bdf8" },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      console.error("Payment error", error);
+      alert("Something went wrong during payment initialization");
+    }
+  };
+
+  const updateBookingStatus = (bookingId, newStatus) => {
+    // 1. Update local state
+    const updated = bookings.map(b => b.id === bookingId ? { ...b, status: newStatus } : b);
+    setBookings(updated);
+
+    // 2. Update localStorage
+    const all = JSON.parse(localStorage.getItem("bookings") || "[]");
+    localStorage.setItem("bookings", JSON.stringify(all.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)));
+  };
+
   return (
     <div style={styles.page}>
       {/* Header */}
@@ -196,6 +285,19 @@ function MyBookings() {
                   value={`₹${booking.totalCost || booking.cost || 0}`}
                   highlight
                 />
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "18px" }}>
+                {getStatus(booking.status) === "Pending" && (
+                  <button 
+                    onClick={() => handlePayment(booking)} 
+                    style={styles.payNowBtn}
+                    onMouseEnter={e => e.currentTarget.style.background = "linear-gradient(135deg,#6366f1,#8b5cf6)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "linear-gradient(135deg,#38bdf8,#818cf8)"}
+                  >
+                    💳 Pay Now
+                  </button>
+                )}
               </div>
 
               {getStatus(booking.status) === "Completed" && (
@@ -502,6 +604,18 @@ const styles = {
     fontWeight: 700,
     flexShrink: 0,
     letterSpacing: "0.3px",
+  },
+  payNowBtn: {
+    padding: "10px 20px",
+    background: "linear-gradient(135deg,#38bdf8,#818cf8)",
+    border: "none",
+    borderRadius: "10px",
+    color: "#fff",
+    fontWeight: 700,
+    fontSize: "13px",
+    cursor: "pointer",
+    transition: "all 0.25s ease",
+    boxShadow: "0 4px 12px rgba(56,189,248,0.25)",
   },
   divider: {
     height: "1px",

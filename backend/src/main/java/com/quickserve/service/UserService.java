@@ -26,6 +26,14 @@ public class UserService {
             return "Email already exists";
         }
 
+        // Secret key validation for ADMIN role
+        if ("ADMIN".equalsIgnoreCase(request.getRole())) {
+            String secretKey = "QUICKSERVE_ADMIN_2026";
+            if (request.getAdminKey() == null || !request.getAdminKey().equals(secretKey)) {
+                return "Invalid Admin Passcode";
+            }
+        }
+
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());

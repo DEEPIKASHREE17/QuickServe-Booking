@@ -1,5 +1,0 @@
-﻿7cbec37fbe5d2ba00c33e8438fba201f16e2fada	HEAD
-31c77fca733e1e678aaaf3d598c472bfeb488c8c	refs/heads/backend-dev
-6c5af120f8901c5fe645949437c482f72026cc50	refs/heads/frontend-dev
-7cbec37fbe5d2ba00c33e8438fba201f16e2fada	refs/heads/main
-7cbec37fbe5d2ba00c33e8438fba201f16e2fada	refs/heads/master

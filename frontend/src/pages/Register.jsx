@@ -1,10 +1,20 @@
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ role: "CUSTOMER", name: "", email: "", phone: "", password: "", service: "", experience: "" });
+  const [formData, setFormData] = useState({ 
+    role: "CUSTOMER", 
+    name: "", 
+    email: "", 
+    phone: "", 
+    password: "", 
+    service: "", 
+    experience: "",
+    adminKey: "" // Added for admin registration
+  });
   const [flash, setFlash] = useState({ msg: "", type: "success" });
 
   const handleChange = (e) => setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
@@ -37,7 +47,7 @@ function Register() {
     }, 2500);
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.phone || !formData.password) {
       showFlash("Please fill all required fields.", "error"); return;
@@ -48,13 +58,24 @@ function Register() {
     if (formData.role === "PROVIDER" && (!formData.service || !formData.experience)) {
       showFlash("Please fill provider service and experience.", "error"); return;
     }
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    if (users.find((u) => u.email === formData.email)) {
-      showFlash("User already exists with this email.", "error"); return;
+    if (formData.role === "ADMIN" && !formData.adminKey) {
+      showFlash("Please enter the Admin Passcode.", "error"); return;
     }
-    users.push({ id: Date.now(), ...formData });
-    localStorage.setItem("users", JSON.stringify(users));
-    showFlash("Your account has been created successfully. 🎉", "success", "/");
+
+    try {
+      const response = await axios.post("http://localhost:8081/api/auth/register", formData);
+      
+      if (response.data === "User registered successfully") {
+        // Sync with local mock users (for existing frontend logic)
+        const users = JSON.parse(localStorage.getItem("users") || "[]");
+        users.push({ id: Date.now(), ...formData });
+        localStorage.setItem("users", JSON.stringify(users));
+        
+        showFlash("Your account has been created successfully. 🎉", "success", "/");
+      }
+    } catch (err) {
+      showFlash(err.response?.data || "Registration failed.", "error");
+    }
   };
 
   return (
@@ -77,11 +98,11 @@ function Register() {
           <form onSubmit={handleRegister} style={{ width: "100%" }}>
             {/* Role toggle */}
             <div style={roleRow}>
-              {["CUSTOMER", "PROVIDER"].map((r) => (
+              {["CUSTOMER", "PROVIDER", "ADMIN"].map((r) => (
                 <button key={r} type="button" onClick={() => setFormData((p) => ({ ...p, role: r }))}
                   style={{ ...roleBtn, ...(formData.role === r ? roleActive : {}) }}
                 >
-                  {r === "CUSTOMER" ? "👤 Customer" : "🛠️ Provider"}
+                  {r === "CUSTOMER" ? "👤 Customer" : r === "PROVIDER" ? "🛠️ Provider" : "🛡️ Admin"}
                 </button>
               ))}
             </div>
@@ -89,6 +110,10 @@ function Register() {
             <Field label="Full Name" name="name" type="text" value={formData.name} onChange={handleChange} placeholder="Enter your name" />
             <Field label="Email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" />
             <Field label="Phone" name="phone" type="text" value={formData.phone} onChange={handleChange} placeholder="Enter phone number" />
+
+            {formData.role === "ADMIN" && (
+              <Field label="Admin Passcode" name="adminKey" type="password" value={formData.adminKey} onChange={handleChange} placeholder="Enter secret admin key" />
+            )}
 
             {/* Password field */}
             <label style={label}>Password</label>

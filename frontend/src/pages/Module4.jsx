@@ -150,6 +150,97 @@ export default function Module4() {
     flash("Thanks for rating the provider! ⭐");
   };
 
+  // ── Payment ───────────────────────────────────────────────────────
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePayment = async (booking) => {
+    try {
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        alert("Razorpay SDK failed to load");
+        return;
+      }
+
+      // 1. Create order on backend
+      const amountInPaise = Math.round((booking.totalAmount || 0) * 100);
+      const orderRes = await api.post(`/payment/${booking.id}/create-order`, {
+        amount: amountInPaise
+      });
+
+      const orderData = orderRes.data;
+      if (!orderData.success) {
+        alert(orderData.message || "Order creation failed");
+        return;
+      }
+
+      // 2. Open Razorpay popup
+      const options = {
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "QuickServe",
+        description: `Payment for ${booking.serviceName}`,
+        order_id: orderData.orderId,
+        handler: async function (response) {
+          try {
+            // 3. Verify payment on backend
+            const verifyRes = await api.post(`/payment/${booking.id}/verify-payment`, {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+
+            if (verifyRes.data.success) {
+              alert("Payment successful!");
+              // Update status
+              updateBookingStatus(booking.id, "CONFIRMED");
+            } else {
+              alert("Payment verification failed");
+            }
+          } catch (err) {
+            console.error("Verification error", err);
+            alert("Verification error: " + err.message);
+          }
+        },
+        prefill: {
+          name: user.name || "Customer",
+          email: user.email || "customer@example.com",
+        },
+        theme: { color: "#38bdf8" },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      console.error("Payment error", error);
+      alert("Something went wrong during payment initialization");
+    }
+  };
+
+  const updateBookingStatus = (bookingId, newStatus) => {
+    const updated = bookings.map(b => b.id === bookingId ? { ...b, status: newStatus } : b);
+    setBookings(updated);
+    if (selected && selected.id === bookingId) {
+      setSelected({ ...selected, status: newStatus });
+    }
+
+    // Sync localStorage
+    const all = JSON.parse(localStorage.getItem("bookings") || "[]");
+    localStorage.setItem("bookings", JSON.stringify(all.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)));
+  };
+
   function flash(msg) {
     setActionMsg(msg);
     setTimeout(() => setActionMsg(""), 3000);
@@ -228,6 +319,7 @@ export default function Module4() {
               onCancel={cancelBooking}
               onView={() => setSelected(b)}
               onRate={(booking, rating) => setRatingModal({ booking, rating })}
+              onPay={handlePayment}
             />
           ))}
         </div>
@@ -240,6 +332,7 @@ export default function Module4() {
           onClose={() => setSelected(null)}
           onCancel={cancelBooking}
           onRate={(booking, rating) => setRatingModal({ booking, rating })}
+          onPay={handlePayment}
         />
       )}
 
@@ -261,7 +354,7 @@ export default function Module4() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function BookingCard({ booking, onCancel, onView, onRate }) {
+function BookingCard({ booking, onCancel, onView, onRate, onPay }) {
   const m = statusMeta(booking.status);
   return (
     <div style={card}
@@ -292,6 +385,9 @@ function BookingCard({ booking, onCancel, onView, onRate }) {
       {/* Actions */}
       <div style={btnRow}>
         <Btn label="View Details" onClick={() => onView(booking)} color="#38bdf8" />
+        {booking.status === "PENDING" && (
+          <Btn label="Pay Now" onClick={() => onPay(booking)} color="#10b981" />
+        )}
         {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
           <Btn label="Cancel" onClick={() => onCancel(booking)} color="#ef4444" />
         )}
@@ -314,7 +410,7 @@ function BookingCard({ booking, onCancel, onView, onRate }) {
   );
 }
 
-function DetailModal({ booking, onClose, onCancel, onRate }) {
+function DetailModal({ booking, onClose, onCancel, onRate, onPay }) {
   const m = statusMeta(booking.status);
   return (
     <div style={overlay} onClick={onClose}>
@@ -372,6 +468,9 @@ function DetailModal({ booking, onClose, onCancel, onRate }) {
           )}
 
           <div style={{ display: "flex", gap: "10px", marginTop: "10px", justifyContent: "flex-end" }}>
+            {booking.status === "PENDING" && (
+              <Btn label="Pay Now" onClick={() => onPay(booking)} color="#10b981" />
+            )}
             {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
               <Btn label="Cancel Booking" onClick={() => onCancel(booking)} color="#ef4444" />
             )}

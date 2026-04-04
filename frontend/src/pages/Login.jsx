@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Login() {
   const navigate = useNavigate();
@@ -10,15 +11,41 @@ function Login() {
   const handleChange = (e) =>
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const foundUser = users.find(
-      (u) => u.email === formData.email && u.password === formData.password
-    );
-    if (!foundUser) { setError("Invalid email or password"); return; }
-    localStorage.setItem("user", JSON.stringify(foundUser));
-    navigate(foundUser.role === "PROVIDER" ? "/provider-dashboard" : "/categories");
+    setError("");
+
+    try {
+      const response = await axios.post("http://localhost:8081/api/auth/login", formData);
+      
+      if (response.data === "Login successful") {
+        // Fetch user profile to get the role
+        const users = JSON.parse(localStorage.getItem("users") || "[]");
+        // For now, we still need to know who the user is. 
+        // Ideally the login API should return the user object.
+        // Let's assume the backend login returns "Login successful" for now as per UserService.java
+        
+        // We'll search for the user by email to get their role for redirection
+        // In a real app, the backend would return a JWT and user info.
+        const foundUser = users.find(u => u.email === formData.email);
+        
+        if (foundUser) {
+          localStorage.setItem("user", JSON.stringify(foundUser));
+          if (foundUser.role === "ADMIN") {
+            navigate("/admin-dashboard");
+          } else if (foundUser.role === "PROVIDER") {
+            navigate("/provider-dashboard");
+          } else {
+            navigate("/categories");
+          }
+        } else {
+          // Fallback if user exists in DB but not in our mock localStorage (unlikely in this setup)
+          setError("User data sync error. Please contact admin.");
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data || "Login failed. Check your connection.");
+    }
   };
 
   return (

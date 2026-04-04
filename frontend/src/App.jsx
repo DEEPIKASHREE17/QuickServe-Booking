@@ -12,6 +12,8 @@ import Module4 from "./pages/Module4";
 import Module5 from "./pages/Module5";
 import RazorpayCheckout from "./pages/RazorpayCheckout";
 
+import AdminDashboard from "./pages/AdminDashboard";
+
 function App() {
   return (
     <BrowserRouter>
@@ -27,6 +29,7 @@ function App() {
         <Route path="/module4" element={<Module4 />} />
         <Route path="/module5" element={<Module5 />} />
         <Route path="/payment" element={<RazorpayCheckout />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );

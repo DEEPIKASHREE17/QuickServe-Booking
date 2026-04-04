@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 
 function Navbar() {
     const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
+    const isAdmin = user.role === 'ADMIN';
     const isProvider = user.role === 'PROVIDER';
 
     return (
         <nav className="navbar">
-            <Link to={isProvider ? "/provider-dashboard" : "/categories"} className="navbar-brand">QuickServe</Link>
+            <Link to={isAdmin ? "/admin-dashboard" : isProvider ? "/provider-dashboard" : "/categories"} className="navbar-brand">QuickServe</Link>
             <div className="navbar-links">
-                {isProvider ? (
+                {isAdmin ? (
+                    <Link to="/admin-dashboard" className="navbar-link">Admin Panel</Link>
+                ) : isProvider ? (
                     <>
                         <Link to="/provider-dashboard" className="navbar-link">Dashboard</Link>
                         <Link to="/module5" className="navbar-link">Service Portal</Link>

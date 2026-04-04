@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 function RazorpayCheckout() {
   const [amount, setAmount] = useState(500);
+  const [bookingId, setBookingId] = useState(1);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,15 +22,13 @@ function RazorpayCheckout() {
   };
 
   const createOrder = async () => {
-    const response = await fetch("http://localhost:8081/api/payment/create-order", {
+    const response = await fetch(`http://localhost:8081/api/payment/${bookingId}/create-order`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        amount: Number(amount) * 100,
-        currency: "INR",
-        receipt: "receipt_" + new Date().getTime(),
+        amount: Number(amount) * 100
       }),
     });
 
@@ -37,7 +36,7 @@ function RazorpayCheckout() {
   };
 
   const verifyPayment = async (paymentResponse) => {
-    const response = await fetch("http://localhost:8081/api/payment/verify", {
+    const response = await fetch(`http://localhost:8081/api/payment/${bookingId}/verify-payment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -122,14 +121,26 @@ function RazorpayCheckout() {
       <div style={styles.card}>
         <h2 style={styles.heading}>Razorpay Test Payment</h2>
 
-        <label style={styles.label}>Enter Amount (₹)</label>
-        <input
-          type="number"
-          value={amount}
-          min="1"
-          onChange={(e) => setAmount(e.target.value)}
-          style={styles.input}
-        />
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Booking ID</label>
+          <input
+            type="number"
+            value={bookingId}
+            onChange={(e) => setBookingId(e.target.value)}
+            style={styles.input}
+          />
+        </div>
+
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Enter Amount (₹)</label>
+          <input
+            type="number"
+            value={amount}
+            min="1"
+            onChange={(e) => setAmount(e.target.value)}
+            style={styles.input}
+          />
+        </div>
 
         <button onClick={handlePayment} style={styles.button} disabled={loading}>
           {loading ? "Processing..." : "Pay Now"}
@@ -163,6 +174,9 @@ const styles = {
     marginBottom: "20px",
     color: "#0f172a",
   },
+  inputGroup: {
+    marginBottom: "20px",
+  },
   label: {
     display: "block",
     marginBottom: "8px",
@@ -172,7 +186,6 @@ const styles = {
   input: {
     width: "100%",
     padding: "12px",
-    marginBottom: "20px",
     borderRadius: "10px",
     border: "1px solid #cbd5e1",
     fontSize: "16px",
@@ -197,4 +210,4 @@ const styles = {
   },
 };
 
-export default RazorpayCheckout;
+export default RazorpayCheckout;

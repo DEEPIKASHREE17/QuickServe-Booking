@@ -4,7 +4,8 @@ import axios from "axios";
 
 function MyBookings() {
   const [bookings, setBookings] = useState([]);
-  const [ratingModal, setRatingModal] = useState(null); // { booking, rating }
+  const [ratingModal, setRatingModal] = useState(null);
+  const [actionMsg, setActionMsg] = useState("");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const navigate = useNavigate();
 
@@ -27,44 +28,74 @@ function MyBookings() {
       });
   }, []);
 
-  const getStatus = (status) =>
-    status === "Completed" ? "Completed" : "Pending";
+  const flash = (msg) => {
+    setActionMsg(msg);
+    setTimeout(() => setActionMsg(""), 3000);
+  };
 
-  const statusColor = (status) =>
-    status === "Completed" ? "#10b981" : "#f59e0b";
+  const getStatus = (status) => {
+    if (!status) return "Pending";
+    const s = String(status).toLowerCase();
 
-  const statusBg = (status) =>
-    status === "Completed"
-      ? "rgba(16,185,129,0.12)"
-      : "rgba(245,158,11,0.12)";
+    if (s === "completed") return "Completed";
+    if (s === "confirmed") return "Confirmed";
+    if (s === "cancelled") return "Cancelled";
+    return "Pending";
+  };
 
-  // ── Rate ───────────────────────────────────────────────────────────
+  const statusColor = (status) => {
+    const normalized = getStatus(status);
+    if (normalized === "Completed") return "#10b981";
+    if (normalized === "Confirmed") return "#38bdf8";
+    if (normalized === "Cancelled") return "#ef4444";
+    return "#f59e0b";
+  };
+
+  const statusBg = (status) => {
+    const normalized = getStatus(status);
+    if (normalized === "Completed") return "rgba(16,185,129,0.12)";
+    if (normalized === "Confirmed") return "rgba(56,189,248,0.12)";
+    if (normalized === "Cancelled") return "rgba(239,68,68,0.12)";
+    return "rgba(245,158,11,0.12)";
+  };
+
   const rateBooking = (booking, rating, feedback = "") => {
-    // Optimistic UI
-    const updated = bookings.map((b) => b.id === booking.id ? { ...b, rating, feedback } : b);
+    const updated = bookings.map((b) =>
+      b.id === booking.id ? { ...b, rating, feedback } : b
+    );
     setBookings(updated);
 
-    // Sync localStorage bookings
     const all = JSON.parse(localStorage.getItem("bookings") || "[]");
-    localStorage.setItem("bookings", JSON.stringify(all.map((b) => b.id === booking.id ? { ...b, rating, feedback } : b)));
+    localStorage.setItem(
+      "bookings",
+      JSON.stringify(
+        all.map((b) => (b.id === booking.id ? { ...b, rating, feedback } : b))
+      )
+    );
 
-    // Update Provider's overall rating in localStorage
     const users = JSON.parse(localStorage.getItem("users") || "[]");
     const updatedUsers = users.map((u) => {
-      // Find provider by name or email
-      if (u.role === "PROVIDER" && (u.email === booking.providerEmail || u.name === booking.providerName)) {
+      if (
+        u.role === "PROVIDER" &&
+        (u.email === booking.providerEmail || u.name === booking.providerName)
+      ) {
         const count = u.ratingCount || 0;
         const currentSum = (u.rating || 0) * count;
         const newCount = count + 1;
         const newRating = (currentSum + rating) / newCount;
-        return { ...u, rating: Number(newRating.toFixed(1)), ratingCount: newCount };
+        return {
+          ...u,
+          rating: Number(newRating.toFixed(1)),
+          ratingCount: newCount,
+        };
       }
       return u;
     });
+
     localStorage.setItem("users", JSON.stringify(updatedUsers));
+    flash("Thanks for your feedback!");
   };
 
-  // ── Payment ───────────────────────────────────────────────────────
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       if (window.Razorpay) {
@@ -83,23 +114,28 @@ function MyBookings() {
     try {
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
-        alert("Razorpay SDK failed to load");
+        flash("Razorpay SDK failed to load");
         return;
       }
 
-      // 1. Create order on backend
-      const amountInPaise = Math.round((booking.totalCost || booking.cost || 0) * 100);
-      const orderRes = await axios.post(`http://localhost:8081/api/payment/${booking.id}/create-order`, {
-        amount: amountInPaise
-      });
+      const amountInPaise = Math.round(
+        (booking.totalCost || booking.cost || 0) * 100
+      );
+
+      const orderRes = await axios.post(
+        `http://localhost:8081/api/payment/${booking.id}/create-order`,
+        {
+          amount: amountInPaise,
+        }
+      );
 
       const orderData = orderRes.data;
+
       if (!orderData.success) {
-        alert(orderData.message || "Order creation failed");
+        flash(orderData.message || "Order creation failed");
         return;
       }
 
-      // 2. Open Razorpay popup
       const options = {
         key: orderData.key,
         amount: orderData.amount,
@@ -109,23 +145,24 @@ function MyBookings() {
         order_id: orderData.orderId,
         handler: async function (response) {
           try {
-            // 3. Verify payment on backend
-            const verifyRes = await axios.post(`http://localhost:8081/api/payment/${booking.id}/verify-payment`, {
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-            });
+            const verifyRes = await axios.post(
+              `http://localhost:8081/api/payment/${booking.id}/verify-payment`,
+              {
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              }
+            );
 
             if (verifyRes.data.success) {
-              alert("Payment successful!");
-              // Optimistically update status to 'Confirmed' or similar
               updateBookingStatus(booking.id, "Confirmed");
+              flash("Payment successful!");
             } else {
-              alert("Payment verification failed");
+              flash("Payment verification failed");
             }
           } catch (err) {
             console.error("Verification error", err);
-            alert("Verification error: " + err.message);
+            flash("Verification error");
           }
         },
         prefill: {
@@ -133,43 +170,58 @@ function MyBookings() {
           email: user.email || "customer@example.com",
         },
         theme: { color: "#38bdf8" },
+        modal: {
+          ondismiss: function () {
+            flash("Payment popup closed");
+          },
+        },
       };
 
       const paymentObject = new window.Razorpay(options);
       paymentObject.open();
     } catch (error) {
       console.error("Payment error", error);
-      alert("Something went wrong during payment initialization");
+      flash("Something went wrong during payment initialization");
     }
   };
 
   const updateBookingStatus = (bookingId, newStatus) => {
-    // 1. Update local state
-    const updated = bookings.map(b => b.id === bookingId ? { ...b, status: newStatus } : b);
+    const updated = bookings.map((b) =>
+      b.id === bookingId ? { ...b, status: newStatus } : b
+    );
     setBookings(updated);
 
-    // 2. Update localStorage
     const all = JSON.parse(localStorage.getItem("bookings") || "[]");
-    localStorage.setItem("bookings", JSON.stringify(all.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)));
+    localStorage.setItem(
+      "bookings",
+      JSON.stringify(
+        all.map((b) => (b.id === bookingId ? { ...b, status: newStatus } : b))
+      )
+    );
   };
 
   return (
     <div style={styles.page}>
-      {/* Header */}
       <div style={styles.header}>
         <div>
           <p style={styles.subtitle}>Dashboard</p>
           <h1 style={styles.title}>My Bookings</h1>
         </div>
-        <button style={styles.browseBtn} onClick={() => navigate("/categories")}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "linear-gradient(135deg,#0ea5e9,#6366f1)";
-            e.currentTarget.style.boxShadow = "0 8px 24px rgba(56,189,248,0.45)";
+        <button
+          style={styles.browseBtn}
+          onClick={() => navigate("/categories")}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background =
+              "linear-gradient(135deg,#0ea5e9,#6366f1)";
+            e.currentTarget.style.boxShadow =
+              "0 8px 24px rgba(56,189,248,0.45)";
             e.currentTarget.style.transform = "translateY(-2px)";
           }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "linear-gradient(135deg,#38bdf8,#818cf8)";
-            e.currentTarget.style.boxShadow = "0 4px 16px rgba(56,189,248,0.3)";
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background =
+              "linear-gradient(135deg,#38bdf8,#818cf8)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 16px rgba(56,189,248,0.3)";
             e.currentTarget.style.transform = "translateY(0)";
           }}
         >
@@ -177,7 +229,8 @@ function MyBookings() {
         </button>
       </div>
 
-      {/* Stats bar */}
+      {actionMsg && <div style={styles.flashBox}>{actionMsg}</div>}
+
       <div style={styles.statsRow}>
         <div style={styles.statCard}>
           <span style={styles.statNum}>{bookings.length}</span>
@@ -185,13 +238,19 @@ function MyBookings() {
         </div>
         <div style={styles.statCard}>
           <span style={{ ...styles.statNum, color: "#f59e0b" }}>
-            {bookings.filter(b => getStatus(b.status) === "Pending").length}
+            {bookings.filter((b) => getStatus(b.status) === "Pending").length}
           </span>
           <span style={styles.statLabel}>Pending</span>
         </div>
         <div style={styles.statCard}>
+          <span style={{ ...styles.statNum, color: "#38bdf8" }}>
+            {bookings.filter((b) => getStatus(b.status) === "Confirmed").length}
+          </span>
+          <span style={styles.statLabel}>Confirmed</span>
+        </div>
+        <div style={styles.statCard}>
           <span style={{ ...styles.statNum, color: "#10b981" }}>
-            {bookings.filter(b => getStatus(b.status) === "Completed").length}
+            {bookings.filter((b) => getStatus(b.status) === "Completed").length}
           </span>
           <span style={styles.statLabel}>Completed</span>
         </div>
@@ -203,7 +262,6 @@ function MyBookings() {
         </div>
       </div>
 
-      {/* Booking list */}
       {bookings.length === 0 ? (
         <div style={styles.emptyCard}>
           <div style={styles.emptyIcon}>📋</div>
@@ -211,13 +269,17 @@ function MyBookings() {
           <p style={styles.emptyText}>
             Your bookings will appear here once you book a service.
           </p>
-          <button style={styles.emptyBtn} onClick={() => navigate("/categories")}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "linear-gradient(135deg,#0ea5e9,#6366f1)";
+          <button
+            style={styles.emptyBtn}
+            onClick={() => navigate("/categories")}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background =
+                "linear-gradient(135deg,#0ea5e9,#6366f1)";
               e.currentTarget.style.transform = "translateY(-2px)";
             }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "linear-gradient(135deg,#38bdf8,#818cf8)";
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background =
+                "linear-gradient(135deg,#38bdf8,#818cf8)";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -230,18 +292,18 @@ function MyBookings() {
             <div
               key={booking.id || i}
               style={styles.card}
-              onMouseEnter={e => {
+              onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = "rgba(56,189,248,0.5)";
                 e.currentTarget.style.transform = "translateY(-4px)";
-                e.currentTarget.style.boxShadow = "0 20px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(56,189,248,0.2)";
+                e.currentTarget.style.boxShadow =
+                  "0 20px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(56,189,248,0.2)";
               }}
-              onMouseLeave={e => {
+              onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
                 e.currentTarget.style.transform = "translateY(0)";
                 e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
               }}
             >
-              {/* Card top */}
               <div style={styles.cardTop}>
                 <div style={styles.serviceIcon}>
                   {getCategoryEmoji(booking.categoryName)}
@@ -260,40 +322,70 @@ function MyBookings() {
                     border: `1px solid ${statusColor(booking.status)}44`,
                   }}
                 >
-                  {getStatus(booking.status) === "Pending" ? "⏳" : "✅"}{" "}
+                  {getStatus(booking.status) === "Pending" && "⏳ "}
+                  {getStatus(booking.status) === "Confirmed" && "✔️ "}
+                  {getStatus(booking.status) === "Completed" && "✅ "}
+                  {getStatus(booking.status) === "Cancelled" && "🚫 "}
                   {getStatus(booking.status)}
                 </span>
               </div>
 
-              {/* Divider */}
               <div style={styles.divider} />
 
-              {/* Details grid */}
               <div style={styles.detailsGrid}>
-                <Detail icon="🛠️" label="Services"
+                <Detail
+                  icon="🛠️"
+                  label="Services"
                   value={
                     booking.selectedServices?.length > 0
-                      ? booking.selectedServices.map(s => s.name).join(", ")
+                      ? booking.selectedServices.map((s) => s.name).join(", ")
                       : booking.categoryName
                   }
                 />
-                <Detail icon="📅" label="Date" value={formatDate(booking.bookingDate)} />
+                <Detail
+                  icon="📅"
+                  label="Date"
+                  value={formatDate(booking.bookingDate)}
+                />
                 <Detail icon="⏰" label="Time" value={booking.bookingTime} />
-                <Detail icon="📍" label="Location" value={booking.location || "—"} />
-                <Detail icon="💳" label="Payment" value={booking.paymentMethod || "—"} />
-                <Detail icon="💰" label="Price"
+                <Detail
+                  icon="📍"
+                  label="Location"
+                  value={booking.location || "—"}
+                />
+                <Detail
+                  icon="💳"
+                  label="Payment"
+                  value={booking.paymentMethod || "—"}
+                />
+                <Detail
+                  icon="💰"
+                  label="Price"
                   value={`₹${booking.totalCost || booking.cost || 0}`}
                   highlight
                 />
               </div>
 
-              <div style={{ display: "flex", gap: "10px", marginTop: "18px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginTop: "18px",
+                  flexWrap: "wrap",
+                }}
+              >
                 {getStatus(booking.status) === "Pending" && (
-                  <button 
-                    onClick={() => handlePayment(booking)} 
+                  <button
+                    onClick={() => handlePayment(booking)}
                     style={styles.payNowBtn}
-                    onMouseEnter={e => e.currentTarget.style.background = "linear-gradient(135deg,#6366f1,#8b5cf6)"}
-                    onMouseLeave={e => e.currentTarget.style.background = "linear-gradient(135deg,#38bdf8,#818cf8)"}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background =
+                        "linear-gradient(135deg,#6366f1,#8b5cf6)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background =
+                        "linear-gradient(135deg,#38bdf8,#818cf8)";
+                    }}
                   >
                     💳 Pay Now
                   </button>
@@ -301,17 +393,44 @@ function MyBookings() {
               </div>
 
               {getStatus(booking.status) === "Completed" && (
-                <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                  <p style={{ fontSize: "11px", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
+                <div
+                  style={{
+                    marginTop: "16px",
+                    paddingTop: "16px",
+                    borderTop: "1px solid rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "#64748b",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      marginBottom: "8px",
+                    }}
+                  >
                     {booking.rating ? "Your Rating" : "Rate Provider"}
                   </p>
-                  <StarRating 
-                    value={booking.rating || 0} 
-                    readonly={!!booking.rating} 
-                    onRateClick={(r) => !booking.rating && setRatingModal({ booking, rating: r })}
+
+                  <StarRating
+                    value={booking.rating || 0}
+                    readonly={!!booking.rating}
+                    onRateClick={(r) =>
+                      !booking.rating && setRatingModal({ booking, rating: r })
+                    }
                   />
+
                   {booking.feedback && (
-                    <p style={{ marginTop: "10px", fontSize: "13px", color: "#94a3b8", fontStyle: "italic", lineHeight: 1.4 }}>
+                    <p
+                      style={{
+                        marginTop: "10px",
+                        fontSize: "13px",
+                        color: "#94a3b8",
+                        fontStyle: "italic",
+                        lineHeight: 1.4,
+                      }}
+                    >
                       "{booking.feedback}"
                     </p>
                   )}
@@ -322,17 +441,29 @@ function MyBookings() {
         </div>
       )}
 
-      {/* Feedback Modal Overlay */}
       {ratingModal && (
         <div style={modalStyles.overlay} onClick={() => setRatingModal(null)}>
-          <div style={modalStyles.container} onClick={e => e.stopPropagation()}>
+          <div
+            style={modalStyles.container}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div style={modalStyles.header}>
-              <h2 style={modalStyles.title}>Feedback for {ratingModal.booking.categoryName}</h2>
-              <button onClick={() => setRatingModal(null)} style={modalStyles.closeBtn}>✕</button>
+              <h2 style={modalStyles.title}>
+                Feedback for {ratingModal.booking.categoryName}
+              </h2>
+              <button
+                onClick={() => setRatingModal(null)}
+                style={modalStyles.closeBtn}
+              >
+                ✕
+              </button>
             </div>
 
-            <p style={modalStyles.subText}>How would you rate your experience with {ratingModal.booking.providerName}?</p>
-            
+            <p style={modalStyles.subText}>
+              How would you rate your experience with{" "}
+              {ratingModal.booking.providerName}?
+            </p>
+
             <div style={modalStyles.starsRow}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <span
@@ -341,8 +472,11 @@ function MyBookings() {
                   style={{
                     cursor: "pointer",
                     fontSize: "32px",
-                    color: star <= ratingModal.rating ? "#f59e0b" : "rgba(255,255,255,0.15)",
-                    transition: "color 0.2s"
+                    color:
+                      star <= ratingModal.rating
+                        ? "#f59e0b"
+                        : "rgba(255,255,255,0.15)",
+                    transition: "color 0.2s",
                   }}
                 >
                   ★
@@ -355,12 +489,14 @@ function MyBookings() {
               id="feedback-text"
               placeholder="Share your experience with the provider..."
               style={modalStyles.textarea}
-              onFocus={e => e.target.style.borderColor = "#38bdf8"}
-              onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.12)"}
+              onFocus={(e) => (e.target.style.borderColor = "#38bdf8")}
+              onBlur={(e) =>
+                (e.target.style.borderColor = "rgba(255,255,255,0.12)")
+              }
             />
 
             <div style={modalStyles.btnRow}>
-              <button 
+              <button
                 onClick={() => {
                   const fb = document.getElementById("feedback-text").value;
                   rateBooking(ratingModal.booking, ratingModal.rating, fb);
@@ -370,7 +506,12 @@ function MyBookings() {
               >
                 Submit Feedback
               </button>
-              <button onClick={() => setRatingModal(null)} style={modalStyles.cancelBtn}>Cancel</button>
+              <button
+                onClick={() => setRatingModal(null)}
+                style={modalStyles.cancelBtn}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -379,14 +520,18 @@ function MyBookings() {
   );
 }
 
-/* Detail row sub-component */
 function Detail({ icon, label, value, highlight }) {
   return (
     <div style={detailStyles.wrap}>
       <span style={detailStyles.icon}>{icon}</span>
       <div>
         <p style={detailStyles.label}>{label}</p>
-        <p style={{ ...detailStyles.value, ...(highlight ? { color: "#38bdf8", fontWeight: 700 } : {}) }}>
+        <p
+          style={{
+            ...detailStyles.value,
+            ...(highlight ? { color: "#38bdf8", fontWeight: 700 } : {}),
+          }}
+        >
           {value}
         </p>
       </div>
@@ -396,6 +541,7 @@ function Detail({ icon, label, value, highlight }) {
 
 function StarRating({ value, readonly, onRateClick }) {
   const [hover, setHover] = useState(0);
+
   return (
     <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
       {[1, 2, 3, 4, 5].map((star) => (
@@ -406,15 +552,28 @@ function StarRating({ value, readonly, onRateClick }) {
           onMouseLeave={() => !readonly && setHover(0)}
           style={{
             cursor: readonly ? "default" : "pointer",
-            fontSize: "20px", lineHeight: 1,
-            color: star <= (hover || value) ? "#f59e0b" : "rgba(255,255,255,0.15)",
-            transition: "color 0.2s"
+            fontSize: "20px",
+            lineHeight: 1,
+            color:
+              star <= (hover || value) ? "#f59e0b" : "rgba(255,255,255,0.15)",
+            transition: "color 0.2s",
           }}
         >
           ★
         </span>
       ))}
-      {value > 0 && <span style={{ marginLeft: "6px", fontSize: "14px", color: "#f59e0b", fontWeight: 700 }}>{value.toFixed(1)}</span>}
+      {value > 0 && (
+        <span
+          style={{
+            marginLeft: "6px",
+            fontSize: "14px",
+            color: "#f59e0b",
+            fontWeight: 700,
+          }}
+        >
+          {Number(value).toFixed(1)}
+        </span>
+      )}
     </div>
   );
 }
@@ -430,6 +589,8 @@ function getCategoryEmoji(name = "") {
   if (n.includes("garden") || n.includes("lawn")) return "🌿";
   if (n.includes("lock")) return "🔐";
   if (n.includes("ac") || n.includes("cool")) return "❄️";
+  if (n.includes("salon") || n.includes("beauty")) return "💇";
+  if (n.includes("carpent")) return "🪚";
   return "🛎️";
 }
 
@@ -437,14 +598,15 @@ function formatDate(dateStr) {
   if (!dateStr) return "—";
   try {
     return new Date(dateStr).toLocaleDateString("en-IN", {
-      day: "numeric", month: "short", year: "numeric",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   } catch {
     return dateStr;
   }
 }
 
-/* ── Styles ── */
 const styles = {
   page: {
     minHeight: "100vh",
@@ -489,6 +651,16 @@ const styles = {
     transition: "all 0.25s ease",
     width: "auto",
     margin: 0,
+  },
+  flashBox: {
+    background: "rgba(16,185,129,0.12)",
+    border: "1px solid rgba(16,185,129,0.3)",
+    color: "#34d399",
+    borderRadius: "12px",
+    padding: "12px 18px",
+    marginBottom: "20px",
+    fontWeight: 600,
+    fontSize: "14px",
   },
   statsRow: {
     display: "grid",
@@ -657,36 +829,103 @@ const detailStyles = {
 
 const modalStyles = {
   overlay: {
-    position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", 
-    backdropFilter: "blur(6px)", zIndex: 1000, 
-    display: "flex", alignItems: "center", justifyContent: "center", padding: "20px"
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    backdropFilter: "blur(6px)",
+    zIndex: 1000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "20px",
   },
   container: {
-    background: "linear-gradient(135deg,#1e293b,#0f172a)", 
-    border: "1px solid rgba(255,255,255,0.12)", borderRadius: "24px", 
-    padding: "32px", width: "100%", maxWidth: "420px", 
-    boxShadow: "0 32px 80px rgba(0,0,0,0.6)"
+    background: "linear-gradient(135deg,#1e293b,#0f172a)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "24px",
+    padding: "32px",
+    width: "100%",
+    maxWidth: "420px",
+    boxShadow: "0 32px 80px rgba(0,0,0,0.6)",
   },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" },
-  title: { color: "#f1f5f9", fontSize: "18px", fontWeight: 800, margin: 0 },
-  closeBtn: { width: "32px", height: "32px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.08)", color: "#94a3b8", cursor: "pointer" },
-  subText: { fontSize: "14px", color: "#94a3b8", marginBottom: "16px" },
-  starsRow: { display: "flex", gap: "6px", marginBottom: "24px" },
-  label: { fontSize: "12px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "20px",
+  },
+  title: {
+    color: "#f1f5f9",
+    fontSize: "18px",
+    fontWeight: 800,
+    margin: 0,
+  },
+  closeBtn: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    border: "1px solid rgba(255,255,255,0.15)",
+    background: "rgba(255,255,255,0.08)",
+    color: "#94a3b8",
+    cursor: "pointer",
+  },
+  subText: {
+    fontSize: "14px",
+    color: "#94a3b8",
+    marginBottom: "16px",
+  },
+  starsRow: {
+    display: "flex",
+    gap: "6px",
+    marginBottom: "24px",
+  },
+  label: {
+    fontSize: "12px",
+    fontWeight: 700,
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: "1px",
+    marginBottom: "8px",
+  },
   textarea: {
-    width: "100%", height: "120px", background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.12)", borderRadius: "12px",
-    padding: "14px", color: "#f1f5f9", fontSize: "14px",
-    outline: "none", resize: "none", boxSizing: "border-box", transition: "all 0.2s"
+    width: "100%",
+    height: "120px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "12px",
+    padding: "14px",
+    color: "#f1f5f9",
+    fontSize: "14px",
+    outline: "none",
+    resize: "none",
+    boxSizing: "border-box",
+    transition: "all 0.2s",
   },
-  btnRow: { display: "flex", gap: "10px", marginTop: "24px" },
-  submitBtn: { 
-    flex: 1, padding: "14px", borderRadius: "12px", 
-    background: "linear-gradient(135deg,#38bdf8,#818cf8)", 
-    color: "#fff", border: "none", fontWeight: 700, cursor: "pointer",
-    boxShadow: "0 8px 16px rgba(56,189,248,0.25)"
+  btnRow: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "24px",
   },
-  cancelBtn: { padding: "14px 20px", borderRadius: "12px", background: "rgba(255,255,255,0.06)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)", fontWeight: 600, cursor: "pointer" }
+  submitBtn: {
+    flex: 1,
+    padding: "14px",
+    borderRadius: "12px",
+    background: "linear-gradient(135deg,#38bdf8,#818cf8)",
+    color: "#fff",
+    border: "none",
+    fontWeight: 700,
+    cursor: "pointer",
+    boxShadow: "0 8px 16px rgba(56,189,248,0.25)",
+  },
+  cancelBtn: {
+    padding: "14px 20px",
+    borderRadius: "12px",
+    background: "rgba(255,255,255,0.06)",
+    color: "#94a3b8",
+    border: "1px solid rgba(255,255,255,0.1)",
+    fontWeight: 600,
+    cursor: "pointer",
+  },
 };
 
 export default MyBookings;
